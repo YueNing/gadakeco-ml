@@ -7,6 +7,7 @@ class Network:
     def __init__(self):
         self.fitness = 0
         self._mutate_add_connection()
+        self.values = {}
     
     def _mutate_add_connection(self):
         self.genome = DefaultGenome('gadakeco')
@@ -37,14 +38,14 @@ class Network:
         """
         if len(self.genome.input_nodes) != len(values):
             raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.genome.input_nodes), len(values)))
-        for k, v in zip(self,genome.input_nodes, values):
+        for k, v in zip(self.genome.input_nodes, values):
             self.values[k] = v
         for node, act_func, agg_func, bias, response, links in self.genome.node_evals:
             node_inputs = []
             for i, w in links:
                 node_inputs.append(self.values[i] * w)
             s = agg_func(node_inputs)
-            self.values[node] = act_func(bias + reponse * s)
+            self.values[node] = act_func(bias + response * s)
         return [self.values[i] for i in self.genome.output_nodes]
 #         return [False, False, False]
 
@@ -80,30 +81,39 @@ class DefaultGenome(object):
         
         if self.initial_connection == 'full':
             # get the connections
-            for l in range(len(layers) -1):
+            for i in range(len(layers) -1):
                 for c in itertools.product(layers[i], layers[i+1]):
-                    connections[(c[0], c[1])]['weight'] = random.uniform(0, 1)
+                    self.connections[(c[0], c[1])]['weight'] = random.uniform(0, 1)
             
             for layer in layers:
                 for node in layer:
                     links = []
-                    for conn_key in connections:
+                    for conn_key in self.connections:
                         inode, onode = conn_key
                         if onode == node:
-                            cg = connections[(c[0], c[1])]
+                            cg = self.connections[(c[0], c[1])]
                             links.append((inode, cg.weight))
-                    self.node_evals.append(node, relu, sum, 0.0, 1.0, links)
+                    self.node_evals.append(node, signmus_activation(), sum, 0.0, 1.0, links)
     
     def mutate(self):
-        if random() < self.node_add_prob:
-            self.mutate_add_node(config)
-        if random() < self.conn_add_prob:
+        if random.random() < self.node_add_prob:
+            self.mutate_add_node()
+        if random.random() < self.conn_add_prob:
             self.mutate_add_connection()
     
     def mutate_add_node(self):
-        conn_to_split = 
+        # conn_to_split = 
+        # TODO: node mutation (a, b, w) -> (a, c, 1), (c, b, w)
+        pass
     
     def mutate_add_connection(self):
+        # TODO: connection mutation, use Uniform distribution or Gauss distribution 
         pass
+
+def signmus_activation():
+    return lambda x: x and (1, -1)[x < 0]
+
+
+
     
             
