@@ -91,15 +91,15 @@ class DefaultGenome(object):
         self.nodes = collections.OrderedDict()
         self.connection = {}
         self.input_layer_size = 486
-        self.hidden_layer_size = [1, 2]
+        self.hidden_layer_size = [1, 2, 3]
         self.output_layer_size = 3
 
         self.input_nodes = [DefaultNode(f"in{n}", links=None, act_func='', 
-                                agg_func='', bias='', response='') 
+                                agg_func='', bias='', response='', node_type="input") 
                                     for n in range(self.input_layer_size)
                             ]
-        self.hidden_nodes = [[DefaultNode(f"h_{l}_{n}") for n in range(l)] for l in self.hidden_layer_size]
-        self.output_nodes = [DefaultNode(f"ou{n}") for n in range(3)]
+        self.hidden_nodes = [[DefaultNode(f"h_{l}_{n}", node_type=f"h_{l}") for n in range(l)] for l in self.hidden_layer_size]
+        self.output_nodes = [DefaultNode(f"ou{n}", node_type="output") for n in range(3)]
 
         self.layers = [self.input_nodes]
         for _ in self.hidden_nodes:
@@ -126,7 +126,7 @@ class DefaultGenome(object):
         
         self.nodes["input_nodes"] = self.layers[0]
         if len(self.layers)>2:
-            for index, _ in enumerate(self.layers[1:-2]):
+            for index, _ in enumerate(self.layers[1:-1]):
                 self.nodes[f"hidden_nodes_{index}"] = _
         self.nodes["output_nodes"] = self.layers[-1]
 
@@ -136,13 +136,34 @@ class DefaultGenome(object):
         if random.random() < self.conn_add_prob:
             self.mutate_add_connection()
     
+    # TODO: node mutation (a, b, w) -> (a, c, 1), (c, b, w)
     def mutate_add_node(self):
-        # conn_to_split = 
-        # TODO: node mutation (a, b, w) -> (a, c, 1), (c, b, w)
-        pass
+        
+        """
+            mutate a node in genome
+
+        """
+        # check connection, has connection then can mutate node
+        if not self.connection:
+            self.mutate_add_connection()
+            return
+        
+        conn_to_split = random.choice(list(self.connection))
     
     def mutate_add_connection(self):
         # TODO: connection mutation, use Uniform distribution or Gauss distribution 
+        pass
+    
+    def mutate_delete_node(self):
+        """
+            delete a existed node
+        """
+        pass
+    
+    def mutate_delete_connection(self):
+        """
+            delete a connection
+        """
         pass
 
 class DefaultNode(object):
@@ -152,7 +173,7 @@ class DefaultNode(object):
 
     """
 
-    def __init__(self, node_name, links=None, act_func='sign', agg_func='sum', bias=0.0, response=1.0):
+    def __init__(self, node_name, links=None, act_func='sign', agg_func='sum', bias=0.0, response=1.0, node_type=None):
         self.node_name = node_name
         self.links = links
         if act_func == "sign":
@@ -161,6 +182,7 @@ class DefaultNode(object):
             self.agg_func = sum
         self.bias = bias
         self.response = response
+        self.node_type = node_type
     
     def set_info(self, links=None, act_func='sign', agg_func='sum', bias=0.0, response=1.0):
         self.links = links
