@@ -27,5 +27,5 @@ class Network:
                 b, ob die Taste "nach Rechts" gedrueckt ist
                 c, ob die Taste "springen" gedrueckt ist.
         """
-
+        #github upload test
         return [False, False, False]
