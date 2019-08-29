@@ -50,19 +50,18 @@ class Network:
         for k, v in zip(self.genome.nodes["input_nodes"], values):
             self.values[k.node_name] = v
         
-        for layer in self.genome.layers[1:-1]:
+        for layer in self.genome.layers[1:]:
             for node in layer:
                 node_inputs = []
                 if node.links is not None:
                     for i, w in node.links:
-                        node_inputs.append(self.values[i.node_name] * w)
+                        node_inputs.append(self.values[i] * w)
                     s = node.agg_func(node_inputs)
                     self.values[node.node_name] = node.act_func(node.bias + node.response * s)
                 else:
                     self.values[node.node_name] = None
-        
+        # import pdb; pdb.set_trace()
         return [ True if self.values[n.node_name] == 1 else False for n in self.genome.nodes["output_nodes"]]
-#         return [False, False, False]
 
 class DefaultGenome(object):
     def __init__(self, key):
@@ -92,7 +91,7 @@ class DefaultGenome(object):
         self.nodes = collections.OrderedDict()
         self.connection = {}
         self.input_layer_size = 486
-        self.hidden_layer_size = [0, 0, 0]
+        self.hidden_layer_size = [1, 2]
         self.output_layer_size = 3
 
         self.input_nodes = [DefaultNode(f"in{n}", links=None, act_func='', 
@@ -111,16 +110,15 @@ class DefaultGenome(object):
             # connection all nodes
             for i in range(len(self.layers)-1):
                 for conn in itertools.product(self.layers[i], self.layers[i+1]):
-                    self.connection[(conn[0], conn[1])]['weight'] = random.uniform(0, 1)
-            
-            for layer in self.layers[1:-1]:
+                    self.connection[(conn[0].node_name, conn[1].node_name)] = {'weight':random.uniform(-1, 1)}
+            for layer in self.layers[1:]:
                 for node in layer:
                     links = []
                     for conn_key in self.connection:
                         inode, onode = conn_key
-                        if onode == node:
+                        if onode == node.node_name:
                             cg = self.connection[conn_key]
-                            links.append(inode, cg.weight)
+                            links.append((inode, cg["weight"]))
                     node.set_info(links=links)
         
         elif self.initial_connection == "None":

@@ -1,5 +1,7 @@
 from neat.network import Network
 import time
+import pickle
+import gzip
 
 class Population():
     def __init__(self, seed, size, initial_state=None):
@@ -38,8 +40,9 @@ class Population():
         Speichert die komplette Population in die Datei mit dem Pfad filename.
         """
         print("called save_to_file")
+        print(filename)
         # TODO get the config of current generation
-        self.config_current_generation = {(inode, onode):{"weight": , "", "", ""}, }
+        self.config_current_generation = {("inode", "onode"):{"weight":1}, }
         # Save the data
         with gzip.open(filename, 'w', compresslevel=5) as f:
 #             data = (self.current_generation, config, population, species_set, random.getstate())
