@@ -53,12 +53,15 @@ class Network:
         for layer in self.genome.layers[1:-1]:
             for node in layer:
                 node_inputs = []
-                for i, w in node.links:
-                    node_inputs.append(self.values[i] * w)
-                s = node.agg_func(node_inputs)
-                self.values[node.node_name] = node.act_func(node.bias + node.response * s)
+                if node.links is not None:
+                    for i, w in node.links:
+                        node_inputs.append(self.values[i.node_name] * w)
+                    s = node.agg_func(node_inputs)
+                    self.values[node.node_name] = node.act_func(node.bias + node.response * s)
+                else:
+                    self.values[node.node_name] = None
         
-        return [self.values[n.node_name] for n in self.genome.nodes["output_nodes"]]
+        return [ True if self.values[n.node_name] == 1 else False for n in self.genome.nodes["output_nodes"]]
 #         return [False, False, False]
 
 class DefaultGenome(object):
