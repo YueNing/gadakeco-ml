@@ -91,16 +91,18 @@ class DefaultGenome(object):
         self.nodes = collections.OrderedDict()
         self.connection = {}
         self.input_layer_size = 486
-        self.hidden_layer_size = [1, 2, 3]
+        self.hidden_layer_size = [20, 10, 10]
         self.output_layer_size = 3
 
-        self.input_nodes = [DefaultNode(f"in{n}", links=None, act_func='', 
+        # 各层初始化，实现上述nodes结构
+        self.input_nodes = [DefaultNode(f"in{n}", links=None, act_func='',  # 第一个参数是node_name，显示为in1 in2……
                                 agg_func='', bias='', response='', node_type="input") 
                                     for n in range(self.input_layer_size)
                             ]
         self.hidden_nodes = [[DefaultNode(f"h_{l}_{n}", node_type=f"h_{l}") for n in range(l)] for l in self.hidden_layer_size]
         self.output_nodes = [DefaultNode(f"ou{n}", node_type="output") for n in range(3)]
 
+        #将nodes 逐层 添加到layers（list）中，实现上述layer结构
         self.layers = [self.input_nodes]
         for _ in self.hidden_nodes:
             self.layers.append(_)
@@ -178,11 +180,11 @@ class DefaultNode(object):
         self.links = links
         if act_func == "sign":
             self.act_func = signmus_activation()
-        if agg_func == 'sum':
+        if agg_func == 'sum':   # sign 和sum 是作为一个初始标记使用？
             self.agg_func = sum
         self.bias = bias
-        self.response = response
-        self.node_type = node_type
+        self.response = response    # 作用未知
+        self.node_type = node_type  # 标记输出、输出、隐藏层
     
     def set_info(self, links=None, act_func='sign', agg_func='sum', bias=0.0, response=1.0):
         self.links = links
@@ -203,7 +205,7 @@ class DefaultNode(object):
                     "act_func":self.act_func, "agg_func":self.agg_func, 
                         "bias":self.bias, "response":self.response
                 }
-        return f"{data}"
+        return f"{data}"    # https://cito.github.io/blog/f-strings/
 
 def signmus_activation():
     return lambda x: x and (1, -1)[x < 0]
