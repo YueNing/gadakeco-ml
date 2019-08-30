@@ -1,4 +1,3 @@
-
 import numpy as np
 import itertools
 import random
@@ -178,6 +177,8 @@ class DefaultNode(object):
     def __init__(self, node_name, links=None, act_func='sign', agg_func='sum', bias=0.0, response=1.0, node_type=None):
         self.node_name = node_name
         self.links = links
+        self.act_func_name = act_func
+        self.agg_func_name = agg_func
         if act_func == "sign":
             self.act_func = signmus_activation()
         if agg_func == 'sum':   # sign 和sum 是作为一个初始标记使用？
@@ -188,6 +189,8 @@ class DefaultNode(object):
     
     def set_info(self, links=None, act_func='sign', agg_func='sum', bias=0.0, response=1.0):
         self.links = links
+        self.act_func_name = act_func
+        self.agg_func_name = agg_func
         if act_func == "sign":
             self.act_func = signmus_activation()
         if agg_func == "sum":
@@ -202,15 +205,10 @@ class DefaultNode(object):
         """
 
         data = {"node_name":self.node_name, "links":self.links, 
-                    "act_func":self.act_func, "agg_func":self.agg_func, 
+                    "act_func":self.act_func_name, "agg_func":self.agg_func_name, 
                         "bias":self.bias, "response":self.response
                 }
         return f"{data}"    # https://cito.github.io/blog/f-strings/
 
 def signmus_activation():
-    return lambda x: x and (1, -1)[x < 0]
-
-
-
-    
-            
+    return lambda x: x and (1, -1)[x < 0]         
