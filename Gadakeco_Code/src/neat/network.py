@@ -1,4 +1,3 @@
-
 import numpy as np
 import itertools
 import random
@@ -210,9 +209,4 @@ class DefaultNode(object):
         return f"{data}"
 
 def signmus_activation():
-    return lambda x: x and (1, -1)[x < 0]
-
-
-
-    
-            
+    return lambda x: x and (1, -1)[x < 0]         
