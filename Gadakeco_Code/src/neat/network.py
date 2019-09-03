@@ -91,11 +91,7 @@ class DefaultGenome(object):
         self.nodes = collections.OrderedDict()
         self.connection = {}
         self.input_layer_size = 486
-<<<<<<< Updated upstream
-        self.hidden_layer_size = [1, 2, 3]
-=======
         self.hidden_layer_size = [6, 4, 4]
->>>>>>> Stashed changes
         self.output_layer_size = 3
 
         self.input_nodes = [DefaultNode(f"in{n}", links=None, act_func='', 
@@ -105,14 +101,9 @@ class DefaultGenome(object):
         self.hidden_nodes = [[DefaultNode(f"h_{l}_{n}", node_type=f"h_{l}") for n in range(l)] for l in self.hidden_layer_size]
         self.output_nodes = [DefaultNode(f"ou{n}", node_type="output") for n in range(3)]
 
-<<<<<<< Updated upstream
-        self.layers = [self.input_nodes]
-        for _ in self.hidden_nodes:
-=======
         # 将nodes 逐层 添加到layers（list）中，实现上述layer结构
         self.layers = [self.input_nodes]    # [input_layer [nodes]]
         for _ in self.hidden_nodes:     # _ [each layer] from hidden layers
->>>>>>> Stashed changes
             self.layers.append(_)
         self.layers.append(self.output_nodes)   # [output layer]
 
@@ -209,20 +200,13 @@ class DefaultNode(object):
         self.agg_func_name = agg_func
         if act_func == "sign":
             self.act_func = signmus_activation()
-<<<<<<< Updated upstream
-        if agg_func == 'sum':
-            self.agg_func = sum
-        self.bias = bias
-        self.response = response
-        self.node_type = node_type
-=======
+
         if agg_func == 'sum':   # sign 和sum 是作为一个初始标记使用
             self.agg_func = sum
         self.bias = bias
         self.response = response    # ?
         self.node_type = node_type  # 标记输出、输出、隐藏层
->>>>>>> Stashed changes
-    
+
     def set_info(self, links=None, act_func='sign', agg_func='sum', bias=0.0, response=1.0):
         self.links = links
         self.act_func_name = act_func
@@ -248,7 +232,6 @@ class DefaultNode(object):
 
 def signmus_activation():
     return lambda x: x and (1, -1)[x < 0]         
-=======
 
 
 class Network:
@@ -283,4 +266,3 @@ class Network:
             #weight_list = random.choices([-1, 0, 1], k=486)
         #github upload test
         return [False, False, False]
->>>>>>> Stashed changes
