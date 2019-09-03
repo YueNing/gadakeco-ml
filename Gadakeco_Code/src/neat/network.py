@@ -65,8 +65,8 @@ class Network:
 class DefaultGenome(object):
     def __init__(self, key):
         self.key = key
-        # initial connection, full/none/random
-        self.initial_connection = "full"
+        # initial connection, full/none/empty/random
+        self.initial_connection_type = "full"
         self.node_add_prob = 0.1
         self.conn_add_prob = 0.2
         self._set_genome()
@@ -90,7 +90,11 @@ class DefaultGenome(object):
         self.nodes = collections.OrderedDict()
         self.connection = {}
         self.input_layer_size = 486
+<<<<<<< Updated upstream
         self.hidden_layer_size = [1, 2, 3]
+=======
+        self.hidden_layer_size = [6, 4, 4]
+>>>>>>> Stashed changes
         self.output_layer_size = 3
 
         self.input_nodes = [DefaultNode(f"in{n}", links=None, act_func='', 
@@ -100,27 +104,42 @@ class DefaultGenome(object):
         self.hidden_nodes = [[DefaultNode(f"h_{l}_{n}", node_type=f"h_{l}") for n in range(l)] for l in self.hidden_layer_size]
         self.output_nodes = [DefaultNode(f"ou{n}", node_type="output") for n in range(3)]
 
+<<<<<<< Updated upstream
         self.layers = [self.input_nodes]
         for _ in self.hidden_nodes:
+=======
+        # 将nodes 逐层 添加到layers（list）中，实现上述layer结构
+        self.layers = [self.input_nodes]    # [input_layer [nodes]]
+        for _ in self.hidden_nodes:     # _ [each layer] from hidden layers
+>>>>>>> Stashed changes
             self.layers.append(_)
-        self.layers.append(self.output_nodes)
+        self.layers.append(self.output_nodes)   # [output layer]
 
-        if self.initial_connection == "full":
+        if self.initial_connection_type == "full":
             # connection all nodes
-            for i in range(len(self.layers)-1):
-                for conn in itertools.product(self.layers[i], self.layers[i+1]):
-                    self.connection[(conn[0].node_name, conn[1].node_name)] = {'weight':random.uniform(-1, 1)}
-            for layer in self.layers[1:]:
+            for i in range(len(self.layers)-1): # other than the output layer
+                # 返回前一层node与后一层node的全部排列组合 conn = [node0, node1]
+                for conn in itertools.product(self.layers[i], self.layers[i+1]):    # product:返回A、B中的元素的笛卡尔积的元组
+                    # full connect, initialize weight of each connect
+                    # connection is a {} of Defaultgenome
+                    self.connection[(conn[0].node_name, conn[1].node_name)] = {'weight': random.uniform(-1, 1)}
+
+            # asign the connection & weight to nodes
+            for layer in self.layers[1:]:   # start from hidden layers
                 for node in layer:
                     links = []
                     for conn_key in self.connection:
-                        inode, onode = conn_key
-                        if onode == node.node_name:
+                        inode, onode = conn_key     # extract data of connection and give them
+                        if onode == node.node_name:     # traversal to find the pairing node to asign connection to
                             cg = self.connection[conn_key]
-                            links.append((inode, cg["weight"]))
+                            links.append((inode, cg["weight"]))     # append () to []
                     node.set_info(links=links)
-        
-        elif self.initial_connection == "None":
+        elif self.initial_connection_type == "empty":
+            for layer in self.layers[1:]:
+                for node in layer:
+                    links = []
+                    self.mutate_add_connection()
+        elif self.initial_connection_type == "None":
             pass
         
         self.nodes["input_nodes"] = self.layers[0]
@@ -145,12 +164,22 @@ class DefaultGenome(object):
         # check connection, has connection then can mutate node
         if not self.connection:
             self.mutate_add_connection()
+            # ! need to ensure that there are connection of both directions
             return
         
         conn_to_split = random.choice(list(self.connection))
     
-    def mutate_add_connection(self):
-        # TODO: connection mutation, use Uniform distribution or Gauss distribution 
+    def mutate_add_connection(self, direction):
+        '''
+        :param direction: 1 = connect to former layer, 0 = to later layer
+        #TODO use Uniform distribution or Gauss distribution
+        '''
+        if direction == 1: # connect to former
+            # get the list length of former layer, choose a node to connect
+
+            # check if
+        elif direction == 0:    # connect to later
+
         pass
     
     def mutate_delete_node(self):
@@ -179,11 +208,19 @@ class DefaultNode(object):
         self.agg_func_name = agg_func
         if act_func == "sign":
             self.act_func = signmus_activation()
+<<<<<<< Updated upstream
         if agg_func == 'sum':
             self.agg_func = sum
         self.bias = bias
         self.response = response
         self.node_type = node_type
+=======
+        if agg_func == 'sum':   # sign 和sum 是作为一个初始标记使用
+            self.agg_func = sum
+        self.bias = bias
+        self.response = response    # ?
+        self.node_type = node_type  # 标记输出、输出、隐藏层
+>>>>>>> Stashed changes
     
     def set_info(self, links=None, act_func='sign', agg_func='sum', bias=0.0, response=1.0):
         self.links = links
