@@ -3,9 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="8a974c45-f65f-49c6-a24f-e1c82fa3bf94" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/gadakeco-neat.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gadakeco-neat.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gadakeco_Code/src/neat/network.py" beforeDir="false" afterPath="$PROJECT_DIR$/Gadakeco_Code/src/neat/network.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -13,13 +11,16 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FavoritesManager">
+    <favorites_list name="gadakeco-neat" />
+  </component>
   <component name="FileEditorManager">
-    <leaf>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Gadakeco_Code/src/neat/network.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="160">
-              <caret line="153" lean-forward="true" selection-start-line="153" selection-end-line="153" />
+            <state relative-caret-position="402">
+              <caret line="143" column="30" selection-start-line="143" selection-start-column="30" selection-end-line="143" selection-end-column="30" />
             </state>
           </provider>
         </entry>
@@ -36,10 +37,17 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-10" />
-    <option name="y" value="-10" />
-    <option name="width" value="1940" />
+  <component name="ProjectConfigurationFiles">
+    <option name="files">
+      <list>
+        <option value="$PROJECT_DIR$/.idea/misc.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="7">
+    <option name="x" value="45" />
+    <option name="y" value="15" />
+    <option name="width" value="1933" />
     <option name="height" value="1050" />
   </component>
   <component name="ProjectView">
@@ -47,7 +55,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -77,11 +84,12 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="File.Encoding" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../neat-python" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -109,16 +117,11 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1550" height="840" extended-state="6" />
-    <editor active="true" />
+    <frame x="-7" y="-7" width="1550" height="840" extended-state="7" />
     <layout>
-      <window_info id="Favorites" side_tool="true" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24966975" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Version Control" />
-      <window_info anchor="bottom" id="Python Console" />
-      <window_info anchor="bottom" id="Terminal" />
-      <window_info anchor="bottom" id="Event Log" side_tool="true" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49858758" visible="true" weight="0.11162484" />
+      <window_info id="Structure" order="1" sideWeight="0.50141245" side_tool="true" weight="0.24966975" />
+      <window_info id="Favorites" order="2" sideWeight="0.50141245" side_tool="true" weight="0.24966975" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" />
@@ -126,6 +129,10 @@
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Version Control" order="7" />
+      <window_info anchor="bottom" id="Terminal" order="8" />
+      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
+      <window_info anchor="bottom" id="Python Console" order="10" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -134,8 +141,8 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/Gadakeco_Code/src/neat/network.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="160">
-          <caret line="153" lean-forward="true" selection-start-line="153" selection-end-line="153" />
+        <state relative-caret-position="402">
+          <caret line="143" column="30" selection-start-line="143" selection-start-column="30" selection-end-line="143" selection-end-column="30" />
         </state>
       </provider>
     </entry>
