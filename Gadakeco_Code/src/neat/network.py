@@ -13,7 +13,6 @@ class Network:
         """
             used to print the class Network information
         """
-        network = collections.OrderedDict()
         network = self.genome.nodes
         return f"{network}"
 
