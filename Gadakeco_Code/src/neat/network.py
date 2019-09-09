@@ -71,6 +71,17 @@ class DefaultGenome(object):
         self._set_genome()
     
     def _convert_to_dict(self, data):
+        """
+            :param: data, type is list, the layer of list is not matter
+            return:  dict
+            >>> _convert_to_dict([DefaultNode, DefaultNode, DefaultNode])
+            >>> {"DefaultNode.node_name":DefaultNode, "DefaultNode.node_name":DefaultNode,  "DefaultNode.node_name":DefaultNode}
+            >>> _convert_to_dict([[DefaultNode, DefaultNode, DefaultNode], [DefaultNode, DefaultNode, DefaultNode], [DefaultNode, DefaultNode, DefaultNode]])
+            >>> {"DefaultNode.node_name":DefaultNode, "DefaultNode.node_name":DefaultNode,  "DefaultNode.node_name":DefaultNode, 
+                        "DefaultNode.node_name":DefaultNode, "DefaultNode.node_name":DefaultNode,  "DefaultNode.node_name":DefaultNode,
+                        "DefaultNode.node_name":DefaultNode, "DefaultNode.node_name":DefaultNode,  "DefaultNode.node_name":DefaultNode
+                    }
+        """
         dict_data = {}
         for k in data:
             if isinstance(k, list):
