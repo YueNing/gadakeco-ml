@@ -70,6 +70,15 @@ class DefaultGenome(object):
         self.conn_add_prob = 0.2
         self._set_genome()
     
+    def _convert_to_dict(self, data):
+        dict_data = {}
+        for k in data:
+            if isinstance(k, list):
+                dict_data = {**dict_data, **self._convert_to_dict(k)}
+            elif isinstance(k, DefaultNode):
+                dict_data[k.node_name] = k
+        return dict_data
+    
     def _set_genome(self):
 
         """
@@ -97,8 +106,11 @@ class DefaultGenome(object):
                                 agg_func='', bias='', response='', node_type="input") 
                                     for n in range(self.input_layer_size)
                             ]
-        self.hidden_nodes = [[DefaultNode(f"h_{l}_{n}", node_type=f"h_{l}") for n in range(l)] for l in self.hidden_layer_size]
+        self.input_nodes_dict = self._convert_to_dict(self.input_nodes)
+        self.hidden_nodes = [[DefaultNode(f"h_{index}_{n+1}", node_type=f"h_{index}") for n in range(l)] for index, l in enumerate(self.hidden_layer_size)]
+        self.hidden_nodes_dict = self._convert_to_dict(self.hidden_nodes)
         self.output_nodes = [DefaultNode(f"ou{n}", node_type="output") for n in range(3)]
+        self.output_nodes_dict = self._convert_to_dict(self.output_nodes)
 
         #将nodes 逐层 添加到layers（list）中，实现上述layer结构
         self.layers = [self.input_nodes]
