@@ -152,7 +152,20 @@ class DefaultGenome(object):
     
     def mutate_add_connection(self):
         # TODO: connection mutation, use Uniform distribution or Gauss distribution 
-        pass
+        in_node  =random.choice(self.input_nodes+self.hidden_nodes)
+        out_node =random.choice(self.output_nodes+self.hidden_nodes)
+
+        key =(in_node.node_name, out_node.node_name)
+        
+        if key in self.connection:
+            return  
+        
+        if creates_cycle(list(self.connections), (in_node,out_node)):
+            return
+
+        self.connection[key] = {'weight':random.uniform(-1, 1)}
+        
+        
     
     def mutate_delete_node(self):
         """
@@ -165,6 +178,30 @@ class DefaultGenome(object):
             delete a connection
         """
         pass
+    def creates_cycle(connections, test):
+    """
+    Returns true if the addition of the 'test' connection would create a cycle,
+    assuming that no cycle already exists in the graph represented by 'connections'.
+    """
+    i, o = test
+    if i == o:
+        return True
+
+    visited = {o}
+    while True:
+        num_added = 0
+        for a, b in connections:
+            if a in visited and b not in visited:
+                if b == i:
+                    return True
+
+                visited.add(b)
+                num_added += 1
+
+        if num_added == 0:
+            return False
+    
+    def 
 
 class DefaultNode(object):
     """
@@ -175,6 +212,7 @@ class DefaultNode(object):
 
     def __init__(self, node_name, links=None, act_func='sign', agg_func='sum', bias=0.0, response=1.0, node_type=None):
         self.node_name = node_name
+        
         self.links = links
         self.act_func_name = act_func
         self.agg_func_name = agg_func
