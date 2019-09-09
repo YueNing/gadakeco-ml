@@ -107,12 +107,12 @@ class DefaultGenome(object):
                                 agg_func='', bias='', response='', node_type="input") 
                                     for n in range(self.input_layer_size)
                             ]
-        self.input_nodes_type_dict = self._convert_to_dict(self.input_nodes)
+        self.input_nodes_dict = self._convert_to_dict(self.input_nodes)
         self.hidden_nodes = [[DefaultNode(f"h_{l}_{n}", node_type=f"h_{l}") for n in range(l)] for l in self.hidden_layer_size]
-        self.hidden_nodes_dict_type = self._convert_to_dict(self.inputhidden_nodes_nodes)
+        self.hidden_nodes_dict = self._convert_to_dict(self.inputhidden_nodes_nodes)
 
         self.output_nodes = [DefaultNode(f"ou{n}", node_type="output") for n in range(3)]
-        self.output_nodes_dict_type = self._convert_to_dict(self.output_nodes)
+        self.output_nodes_dict = self._convert_to_dict(self.output_nodes)
         
         # 将nodes 逐层 添加到layers（list）中，实现上述layer结构
         self.layers = [self.input_nodes]    # [input_layer [nodes]]
