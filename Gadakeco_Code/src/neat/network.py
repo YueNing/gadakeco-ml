@@ -72,14 +72,13 @@ class DefaultGenome(object):
         self.conn_add_prob = 0.2
         self._set_genome()
     
-    @staticmethod
-    def _convert_to_dict(data):
+    def _convert_to_dict(self, data):
         dict_data = {}
         for k in data:
             if isinstance(k, list):
                 dict_data = {**dict_data, **self._convert_to_dict(k)}
             elif isinstance(k, DefaultNode):
-                dict_data[k] = k
+                dict_data[k.node_name] = k
         return dict_data
     
     def _set_genome(self):
@@ -115,7 +114,6 @@ class DefaultGenome(object):
         self.output_nodes = [DefaultNode(f"ou{n}", node_type="output") for n in range(3)]
         self.output_nodes_dict_type = self._convert_to_dict(self.output_nodes)
         
-        import pdb; pdb.set_trace()
         # 将nodes 逐层 添加到layers（list）中，实现上述layer结构
         self.layers = [self.input_nodes]    # [input_layer [nodes]]
         for _ in self.hidden_nodes:     # _ [each layer] from hidden layers
@@ -244,10 +242,6 @@ class DefaultNode(object):
                         "bias":self.bias, "response":self.response
                 }
         return f"{data}"
-    
-    def __hash__(self):
-        return hash(self.node_name)
-
 def signmus_activation():
     return lambda x: x and (1, -1)[x < 0]         
 
