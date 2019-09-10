@@ -46,20 +46,48 @@ class Network:
         if len(self.genome.nodes["input_nodes"]) != len(values):
             raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.genome.input_nodes), len(values)))
         for k, v in zip(self.genome.nodes["input_nodes"], values):
-            self.values[k.node_name] = v
-        
-        for layer in self.genome.layers[1:]:
-            for node in layer:
-                node_inputs = []
-                if node.links is not None:
-                    for i, w in node.links:
-                        node_inputs.append(self.values[i] * w)
-                    s = node.agg_func(node_inputs)
-                    self.values[node.node_name] = node.act_func(node.bias + node.response * s)
-                else:
-                    self.values[node.node_name] = None
+            self.values[k.node_name] = v       
+        # for layer in self.genome.layers[1:]:
+        #     for node in layer:
+        #         node_inputs = []
+        #         if node.links is not None:
+        #             for i, w in node.links:
+        #                 node_inputs.append(self.values[i] * w)
+        #             s = node.agg_func(node_inputs)
+        #             self.values[node.node_name] = node.act_func(node.bias + node.response * s)
+        #         else:
+        #             self.values[node.node_name] = None
         # import pdb; pdb.set_trace()
+        for n in self.genome.nodes["output_nodes"]:
+            self.evaluate_node(n)
         return [ True if self.values[n.node_name] == 1 else False for n in self.genome.nodes["output_nodes"]]
+
+    def evaluate_node(self, node):
+        if node.node_type=="input":
+            return
+        # print(node.node_name)
+        number_of_links       =len(node.links)
+        links_with_known_value=0
+        if node.links is None:
+            self.values[node.node_name] =0
+            return self.values[node.node_name]
+        for link in node.links:
+            # import pdb; pdb.set_trace()
+            if link[0].node_name not in self.values:
+                self.evaluate_node(link[0])
+                links_with_known_value+=1
+            else:
+                links_with_known_value+=1
+        if links_with_known_value==number_of_links:
+            node_inputs = []
+            for i, w in node.links:
+                node_inputs.append(self.values[i.node_name] * w)
+            s = node.agg_func(node_inputs)
+            self.values[node.node_name] = node.act_func(node.bias + node.response * s)
+            return  self.values[node.node_name]
+        # print(self.values)
+            
+
 
 class DefaultGenome(object):
     def __init__(self, key):
@@ -109,7 +137,7 @@ class DefaultGenome(object):
         self.nodes = collections.OrderedDict()
         self.connection = {}
         self.input_layer_size = 486
-        self.hidden_layer_size = [20, 10, 10]
+        self.hidden_layer_size = [1]
         self.output_layer_size = 3
 
         # 各层初始化，实现上述nodes结构
@@ -133,16 +161,18 @@ class DefaultGenome(object):
             # connection all nodes
             for i in range(len(self.layers)-1):
                 for conn in itertools.product(self.layers[i], self.layers[i+1]):
-                    self.connection[(conn[0].node_name, conn[1].node_name)] = {'weight':random.uniform(-1, 1)}
+                    self.connection[(conn[0], conn[1])] = {'weight':random.uniform(-1, 1)}
+            # import pdb; pdb.set_trace()
             for layer in self.layers[1:]:
                 for node in layer:
                     links = []
                     for conn_key in self.connection:
                         inode, onode = conn_key
-                        if onode == node.node_name:
+                        if onode.node_name == node.node_name:
                             cg = self.connection[conn_key]
                             links.append((inode, cg["weight"]))
                     node.set_info(links=links)
+            # import pdb;pdb.set_trace()
         
         elif self.initial_connection == "None":
             pass
@@ -174,16 +204,20 @@ class DefaultGenome(object):
         conn_to_split = random.choice(list(self.connection))
     
     def mutate_add_connection(self):
-        # TODO: connection mutation, use Uniform distribution or Gauss distribution 
-        in_node  =random.choice(self.input_nodes+self.hidden_nodes)
-        out_node =random.choice(self.output_nodes+self.hidden_nodes)
+        # TODO: connection mutation, use Uniform distribution or Gauss distribution
+        temp_list = []
+        for h in self.hidden_nodes:
+            temp_list += h
+        in_node  =random.choice(self.input_nodes+temp_list)
+        out_node =random.choice(self.output_nodes+temp_list)
 
+        # import pdb; pdb.set_trace()
         key =(in_node.node_name, out_node.node_name)
         
         if key in self.connection:
             return  
         
-        if creates_cycle(list(self.connections), (in_node,out_node)):
+        if self.creates_cycle(list(self.connection), (in_node,out_node)):
             return
 
         self.connection[key] = {'weight':random.uniform(-1, 1)}
@@ -201,30 +235,30 @@ class DefaultGenome(object):
             delete a connection
         """
         pass
-    def creates_cycle(connections, test):
-    """
-    Returns true if the addition of the 'test' connection would create a cycle,
-    assuming that no cycle already exists in the graph represented by 'connections'.
-    """
-    i, o = test
-    if i == o:
-        return True
-
-    visited = {o}
-    while True:
-        num_added = 0
-        for a, b in connections:
-            if a in visited and b not in visited:
-                if b == i:
-                    return True
-
-                visited.add(b)
-                num_added += 1
-
-        if num_added == 0:
-            return False
     
-    def 
+    @staticmethod
+    def creates_cycle(connections, test):
+        """
+        Returns true if the addition of the 'test' connection would create a cycle,
+        assuming that no cycle already exists in the graph represented by 'connections'.
+        """
+        i, o = test
+        if i == o:
+            return True
+    
+        visited = {o}
+        while True:
+            num_added = 0
+            for a, b in connections:
+                if a in visited and b not in visited:
+                    if b == i:
+                        return True
+
+                    visited.add(b)
+                    num_added += 1
+
+            if num_added == 0:
+                return False
 
 class DefaultNode(object):
     """
