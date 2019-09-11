@@ -207,8 +207,8 @@ class DefaultGenome(object):
                 pass
         elif mode == 'simple'
             pass
-
-        node2.set_info(Links=node1)
+        weight = random.choice([1,-1])
+        node2.set_links(node1,weight)
 
     def mutate_add_connection(self):
         # TODO: connection mutation, use Uniform distribution or Gauss distribution
@@ -258,8 +258,10 @@ class DefaultNode(object):
 
     def __init__(self, node_name, links=None, act_func='sign', agg_func='sum', bias=0.0, response=1.0, node_type=None):
         self.node_name = node_name
-        
-        self.links = links  # [(inputnode, weight),(),()]
+        if links == None:
+            self.links = []  # [(inputnode, weight),(),()]
+        else:
+            self.links = links
         self.act_func_name = act_func
         self.agg_func_name = agg_func
         if act_func == "sign":
@@ -267,11 +269,16 @@ class DefaultNode(object):
         if agg_func == 'sum':   # sign 和sum 是作为一个初始标记使用？
             self.agg_func = sum
         self.bias = bias
-        self.response = response    # 作用未知
+        self.response = response
         self.node_type = node_type  # 标记输出、输出、隐藏层
     
-    def set_info(self, links=None):
-        self.links = links
+    def set_links(self, newlink):
+        if type(newlink) == list:
+            self.links.extend(newlink)
+        elif tpye(newlink) == tuple:
+            self.links.append(newlink)
+        else:
+            print("error! input should be [(inputnode, weight),(),()] or (inputnode, weight)")
 
     def __str__(self):
 
