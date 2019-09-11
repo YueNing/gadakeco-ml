@@ -44,7 +44,7 @@ class Network:
                 c, ob die Taste "springen" gedrueckt ist.
         """
         if len(self.genome.nodes["input_nodes"]) != len(values):
-            raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.genome.input_nodes), len(values)))
+            raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.genome.input_nodes_list), len(values)))
         for k, v in zip(self.genome.nodes["input_nodes"], values):
             self.values[k.node_name] = v       
         # for layer in self.genome.layers[1:]:
@@ -102,12 +102,9 @@ class DefaultGenome(object):
             :param: data, type is list, the layer of list is not matter
             return:  dict
             >>> _convert_to_dict([DefaultNode, DefaultNode, DefaultNode])
-            >>> {"DefaultNode.node_name":DefaultNode, "DefaultNode.node_name":DefaultNode,  "DefaultNode.node_name":DefaultNode}
+            >>> {"DefaultNode.node_name":DefaultNode, , }
             >>> _convert_to_dict([[DefaultNode, DefaultNode, DefaultNode], [DefaultNode, DefaultNode, DefaultNode], [DefaultNode, DefaultNode, DefaultNode]])
-            >>> {"DefaultNode.node_name":DefaultNode, "DefaultNode.node_name":DefaultNode,  "DefaultNode.node_name":DefaultNode, 
-                        "DefaultNode.node_name":DefaultNode, "DefaultNode.node_name":DefaultNode,  "DefaultNode.node_name":DefaultNode,
-                        "DefaultNode.node_name":DefaultNode, "DefaultNode.node_name":DefaultNode,  "DefaultNode.node_name":DefaultNode
-                    }
+            >>> {"DefaultNode.node_name":DefaultNode, , }
         """
         dict_data = {}
         for k in data:
@@ -122,21 +119,22 @@ class DefaultGenome(object):
         # all information stored in nodes
 
         self.nodes = collections.OrderedDict()
-        self.connection = {}    # no further usage
+        self.connection = {}    # not maintained
         self.input_layer_size = 486
         self.hidden_layer_size = 200  # TODO converted form [] to int, need to adjust other parts
         self.output_layer_size = 3
 
-        self.input_nodes = [DefaultNode(f"in{n}", links=None, node_type="input")
-                             for n in range(self.input_layer_size)]
-        self.hidden_nodes = [DefaultNode(f"h_{n+1}", node_type=f"hidden")
-                             for n in range(self.hidden_layer_size)]
-        self.output_nodes = [DefaultNode(f"ou{n}", node_type="output")
-                             for n in range(self.output_layer_size)]
-        # convert to dictionary
-        self.input_nodes_dict = self._convert_to_dict(self.input_nodes)
-        self.hidden_nodes_dict = self._convert_to_dict(self.hidden_nodes)
-        self.output_nodes_dict = self._convert_to_dict(self.output_nodes)
+        self.input_nodes_list = [DefaultNode(f"in{n}", links=None, node_type="input")
+                                 for n in range(self.input_layer_size)]
+        self.hidden_nodes_list = [DefaultNode(f"h_{n + 1}", node_type=f"hidden")
+                                  for n in range(self.hidden_layer_size)]
+        self.output_nodes_list = [DefaultNode(f"ou{n}", node_type="output")
+                                  for n in range(self.output_layer_size)]
+        # convert to dictionary, the lists above are temp parameters
+        # dictionary structure = {"DefaultNode.node_name":DefaultNode, , }
+        self.input_nodes_dict = self._convert_to_dict(self.input_nodes_list)
+        self.hidden_nodes_dict = self._convert_to_dict(self.hidden_nodes_list)
+        self.output_nodes_dict = self._convert_to_dict(self.output_nodes_list)
 
         if self.initial_connection == "full":
             # connection all nodes
@@ -158,32 +156,41 @@ class DefaultGenome(object):
             self.mutate_add_connection()
     
     # TODO: node mutation (a, b, w) -> (a, c, 1), (c, b, w)
-    def mutate_add_node(self):
-        
-        """
-            mutate a node in genome
+    def mutate_add_node(self, mode = 'break'):
+        # create a new node in hidden layer
+        self.hidden_layer_size += 1
+        added_node = DefaultNode(f"h_{self.hidden_layer_size}", node_type=f"hidden")
+        self.hidden_nodes_dict['added_node.node_name'] = added_node
 
-        """
-        # check connection, has connection then can mutate node
+        if mode == 'break':   # 破坏一个connection，中间加塞新的node
+            # input of chosen node --> added node --> chosen node （random weight）
+            chosen_node = random.choice(self.hidden_nodes_dict.values())
+            chosen_inputnode, chosen_weight = random.choice(chosen_node.links)
+
+            added_node.set_links(chosen_inputnode,random.choice([-1,1]))
+            chosen_node.set_links(added_node,random.choice([-1,1]))
+        else:
+            pass
+        '''
+        # the connection parameter below is no longer maintained
         if not self.connection:
             self.mutate_add_connection()
             return
-        
         conn_to_split = random.choice(list(self.connection))
-    
+        '''
+
     def int_connection_each(self):
         '''
         each hidden node has 1 connection to input, and 1 to output
-        # a weird way to initialize...
         '''
         temp_list = []
-        for h in self.hidden_nodes:
+        for h in self.hidden_nodes_list:
             temp_list += h
-        in_node  =random.choice(self.input_nodes+temp_list)
-        out_node =random.choice(self.output_nodes+temp_list)
+        in_node  =random.choice(self.input_nodes_list + temp_list)
+        out_node =random.choice(self.output_nodes_list + temp_list)
 
         #add connect_info to nodes, random weight
-        self.connect_node_pair(in_node,out_node,simple)
+        self.connect_node_pair(in_node,out_node,'simple')
 
         # import pdb; pdb.set_trace()
         key =(in_node.node_name, out_node.node_name)
@@ -198,27 +205,57 @@ class DefaultGenome(object):
 
 
     def connect_node_pair(self, node1, node2, mode = 'sort'):
-        if mode == 'sort'
+        if mode == 'sort':  # 只允许从小id指向大id连接
             if node1.get_node_id > node2.get_node_id:
                 node1, node2 = node2, node1
             elif node1.get_node_id == node2.get_node_id:
                 print("error, same id were given")
             else:
                 pass
-        elif mode == 'simple'
+        elif mode == 'simple':  # 按给定参数顺序连接
+            if node1.get_node_id == node2.get_node_id:
+            print("error, same id were given")
+            else:
+                pass
             pass
         weight = random.choice([1,-1])
         node2.set_links(node1,weight)
 
-    def mutate_add_connection(self):
+    def mutate_add_connection(self, mode = 'hh'):
         # TODO: connection mutation, use Uniform distribution or Gauss distribution
-
+        if mode == 'hh':    # hidden --> hidden
+            node_a = random.choice(self.hidden_nodes_dict.values())
+            node_b = random.choice(self.hidden_nodes_dict.values())
+            self.connect_node_pair(node_a,node_b, 'sort')
+        elif mode == 'ih':  # input --> hidden:
+            node_a = random.choice(self.input_nodes_dict.values())
+            node_b = random.choice(self.hidden_nodes_dict.values())
+            node_b.set_links(node_a,random.choice([-1,1]))
+        elif mode == 'ho'   # hidden --> output:
+            node_a = random.choice(self.hidden_nodes_dict.values())
+            node_b = random.choice(self.output_nodes_dict.values())
+            node_b.set_links(node_a,random.choice([-1,1]))
     def mutate_delete_node(self):
-        """
-            delete a existed node
-        """
-        pass
-    
+        #input和output都是固定的，所以这里只可能删除hidden node
+        delete_node = random.choice(self.hidden_nodes_dict.values())
+        delete_name = delete_node.node_name
+        self.hidden_nodes_dict.pop('delete_name')
+
+        #谁把这个node作为input，谁的links就需要更新
+        for keynode_o in self.output_nodes_dict.item():
+            key, value_node = keynode_o
+            if 'delete_name,1' or 'delete_name,-1' in value_node.links:
+                del self.output_nodes_dict['key']
+            else:
+                pass
+
+        for keynode_h in self.hidden_nodes_dict.item():
+            key, value_node = keynode_h
+            if 'delete_name,1' or 'delete_name,-1' in value_node.links:
+                del self.hidden_nodes_dict['key']
+            else:
+                pass
+
     def mutate_delete_connection(self):
         """
             delete a connection
@@ -273,9 +310,9 @@ class DefaultNode(object):
         self.node_type = node_type  # 标记输出、输出、隐藏层
     
     def set_links(self, newlink):
-        if type(newlink) == list:
+        if type(newlink) == list:   # [(inputnode, weight),(),()]
             self.links.extend(newlink)
-        elif tpye(newlink) == tuple:
+        elif type(newlink) == tuple:    # (inputnode, weight)
             self.links.append(newlink)
         else:
             print("error! input should be [(inputnode, weight),(),()] or (inputnode, weight)")
