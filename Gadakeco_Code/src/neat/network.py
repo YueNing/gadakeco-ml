@@ -158,7 +158,7 @@ class DefaultGenome(object):
             self.mutate_add_node()
         if random.random() < self.conn_add_prob:
             self.mutate_add_connection()
-    
+    #test github
     # TODO: node mutation (a, b, w) -> (a, c, 1), (c, b, w)
     def mutate_add_node(self):
         
