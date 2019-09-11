@@ -104,3 +104,5 @@ logs/
 
 # visual studio code
 .vscode/
+.idea/misc.xml
+.idea/inspectionProfiles/profiles_settings.xml

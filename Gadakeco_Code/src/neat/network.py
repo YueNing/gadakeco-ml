@@ -66,7 +66,7 @@ class Network:
         if node.node_type=="input":
             return
         # print(node.node_name)
-        number_of_links       =len(node.links)
+        number_of_links =len(node.links)
         links_with_known_value=0
         if node.links is None:
             self.values[node.node_name] =0
@@ -87,7 +87,6 @@ class Network:
             return  self.values[node.node_name]
         # print(self.values)
             
-
 
 class DefaultGenome(object):
     def __init__(self, key):
@@ -119,60 +118,29 @@ class DefaultGenome(object):
         return dict_data
     
     def _set_genome(self):
-
-        """
-            genome data structur:
-                self.layers = [[DefaultNode, DefaultNode, DefaultNode], 
-                                [DefaultNode, DefaultNode ,DefaultNode], 
-                                [DefaultNode, DefaultNode], 
-                                [DefaultNode, DefaultNode, DefaultNode]
-                            ]
-                
-                self.nodes = {"input_nodes":[DefaultNode, DefaultNode, DefaultNode], 
-                                "hidden_nodes_{index}":[DefaultNode, DefaultNode, DefaultNode], 
-                                        "output_nodes":[DefaultNode, DefaultNode, DefaultNode]
-                            }
-        """
+        # hidden layer doesn't have further layers anymore
+        # all information stored in nodes
 
         self.nodes = collections.OrderedDict()
-        self.connection = {}
+        self.connection = {}    # no further usage
         self.input_layer_size = 486
-        self.hidden_layer_size = [1]
+        self.hidden_layer_size = 200  # TODO converted form [] to int, need to adjust other parts
         self.output_layer_size = 3
 
-        # 各层初始化，实现上述nodes结构
-        self.input_nodes = [DefaultNode(f"in{n}", links=None, act_func='',  # 第一个参数是node_name，显示为in1 in2……
-                                agg_func='', bias='', response='', node_type="input") 
-                                    for n in range(self.input_layer_size)
-                            ]
+        self.input_nodes = [DefaultNode(f"in{n}", links=None, node_type="input")
+                             for n in range(self.input_layer_size)]
+        self.hidden_nodes = [DefaultNode(f"h_{n+1}", node_type=f"hidden")
+                             for n in range(self.hidden_layer_size)]
+        self.output_nodes = [DefaultNode(f"ou{n}", node_type="output")
+                             for n in range(self.output_layer_size)]
+        # convert to dictionary
         self.input_nodes_dict = self._convert_to_dict(self.input_nodes)
-        self.hidden_nodes = [[DefaultNode(f"h_{index}_{n+1}", node_type=f"h_{index}") for n in range(l)] for index, l in enumerate(self.hidden_layer_size)]
         self.hidden_nodes_dict = self._convert_to_dict(self.hidden_nodes)
-        self.output_nodes = [DefaultNode(f"ou{n}", node_type="output") for n in range(3)]
         self.output_nodes_dict = self._convert_to_dict(self.output_nodes)
-
-        #将nodes 逐层 添加到layers（list）中，实现上述layer结构
-        self.layers = [self.input_nodes]
-        for _ in self.hidden_nodes:
-            self.layers.append(_)
-        self.layers.append(self.output_nodes)
 
         if self.initial_connection == "full":
             # connection all nodes
-            for i in range(len(self.layers)-1):
-                for conn in itertools.product(self.layers[i], self.layers[i+1]):
-                    self.connection[(conn[0], conn[1])] = {'weight':random.uniform(-1, 1)}
-            # import pdb; pdb.set_trace()
-            for layer in self.layers[1:]:
-                for node in layer:
-                    links = []
-                    for conn_key in self.connection:
-                        inode, onode = conn_key
-                        if onode.node_name == node.node_name:
-                            cg = self.connection[conn_key]
-                            links.append((inode, cg["weight"]))
-                    node.set_info(links=links)
-            # import pdb;pdb.set_trace()
+            self.int_connection_each()
         
         elif self.initial_connection == "None":
             pass
@@ -203,27 +171,48 @@ class DefaultGenome(object):
         
         conn_to_split = random.choice(list(self.connection))
     
-    def mutate_add_connection(self):
-        # TODO: connection mutation, use Uniform distribution or Gauss distribution
+    def int_connection_each(self):
+        '''
+        each hidden node has 1 connection to input, and 1 to output
+        # a weird way to initialize...
+        '''
         temp_list = []
         for h in self.hidden_nodes:
             temp_list += h
         in_node  =random.choice(self.input_nodes+temp_list)
         out_node =random.choice(self.output_nodes+temp_list)
 
+        #add connect_info to nodes, random weight
+        self.connect_node_pair(in_node,out_node,simple)
+
         # import pdb; pdb.set_trace()
         key =(in_node.node_name, out_node.node_name)
-        
+
         if key in self.connection:
             return  
         
-        if self.creates_cycle(list(self.connection), (in_node,out_node)):
+        if self.creates_cycle(list(self.connection), (in_node, out_node)):
             return
 
         self.connection[key] = {'weight':random.uniform(-1, 1)}
-        
-        
-    
+
+
+    def connect_node_pair(self, node1, node2, mode = 'sort'):
+        if mode == 'sort'
+            if node1.get_node_id > node2.get_node_id:
+                node1, node2 = node2, node1
+            elif node1.get_node_id == node2.get_node_id:
+                print("error, same id were given")
+            else:
+                pass
+        elif mode == 'simple'
+            pass
+
+        node2.set_info(Links=node1)
+
+    def mutate_add_connection(self):
+        # TODO: connection mutation, use Uniform distribution or Gauss distribution
+
     def mutate_delete_node(self):
         """
             delete a existed node
@@ -270,7 +259,7 @@ class DefaultNode(object):
     def __init__(self, node_name, links=None, act_func='sign', agg_func='sum', bias=0.0, response=1.0, node_type=None):
         self.node_name = node_name
         
-        self.links = links
+        self.links = links  # [(inputnode, weight),(),()]
         self.act_func_name = act_func
         self.agg_func_name = agg_func
         if act_func == "sign":
@@ -281,16 +270,8 @@ class DefaultNode(object):
         self.response = response    # 作用未知
         self.node_type = node_type  # 标记输出、输出、隐藏层
     
-    def set_info(self, links=None, act_func='sign', agg_func='sum', bias=0.0, response=1.0):
+    def set_info(self, links=None):
         self.links = links
-        self.act_func_name = act_func
-        self.agg_func_name = agg_func
-        if act_func == "sign":
-            self.act_func = signmus_activation()
-        if agg_func == "sum":
-            self.agg_func = sum
-        self.bias = bias
-        self.response = response
 
     def __str__(self):
 
