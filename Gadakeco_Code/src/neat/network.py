@@ -124,6 +124,7 @@ class DefaultGenome(object):
         self.hidden_layer_size = 200  # TODO converted form [] to int, need to adjust other parts
         self.output_layer_size = 3
 
+<<<<<<< HEAD
         self.input_nodes_list = [DefaultNode(f"in{n}", links=None, node_type="input")
                                  for n in range(self.input_layer_size)]
         self.hidden_nodes_list = [DefaultNode(f"h_{n + 1}", node_type=f"hidden")
@@ -135,6 +136,18 @@ class DefaultGenome(object):
         self.input_nodes_dict = self._convert_to_dict(self.input_nodes_list)
         self.hidden_nodes_dict = self._convert_to_dict(self.hidden_nodes_list)
         self.output_nodes_dict = self._convert_to_dict(self.output_nodes_list)
+=======
+        self.input_nodes = [DefaultNode(f"in{n}", links=None, node_type="input")
+                             for n in range(self.input_layer_size)]
+        self.hidden_nodes = [DefaultNode(f"h_{n+1}", node_type="hidden")
+                             for n in range(self.hidden_layer_size)]
+        self.output_nodes = [DefaultNode(f"ou{n}", node_type="output")
+                             for n in range(self.output_layer_size)]
+        # convert to dictionary
+        self.input_nodes_dict = self._convert_to_dict(self.input_nodes)
+        self.hidden_nodes_dict = self._convert_to_dict(self.hidden_nodes)
+        self.output_nodes_dict = self._convert_to_dict(self.output_nodes)
+>>>>>>> 3df1434bf28932ec280f9629bb617433d1ae9e13
 
         if self.initial_connection == "full":
             # connection all nodes
@@ -219,7 +232,7 @@ class DefaultGenome(object):
                 pass
             pass
         weight = random.choice([1,-1])
-        node2.set_links(node1,weight)
+        node2.set_links((node1,weight))
 
     def mutate_add_connection(self, mode = 'hh'):
         # TODO: connection mutation, use Uniform distribution or Gauss distribution
