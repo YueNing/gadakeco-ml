@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 import numpy as np
 import itertools
 import random
@@ -100,26 +99,28 @@ class DefaultGenome(object):
         self.nodes = collections.OrderedDict()
         self.connection = {}
         self.input_layer_size = 486
-        self.hidden_layer_size = [6, 4, 4]
+        self.hidden_layer_size = 200
         self.output_layer_size = 3
 
-        self.input_nodes = [DefaultNode(f"in{n}", links=None, act_func='', 
-                                agg_func='', bias='', response='', node_type="input") 
+        self.input_nodes = [DefaultNode(f"in{n}", node_type="input")
                                     for n in range(self.input_layer_size)
                             ]
         self.input_nodes_dict = self._convert_to_dict(self.input_nodes)
-        self.hidden_nodes = [[DefaultNode(f"h_{l}_{n}", node_type=f"h_{l}") for n in range(l)] for l in self.hidden_layer_size]
-        self.hidden_nodes_dict = self._convert_to_dict(self.inputhidden_nodes_nodes)
+
+        #self.hidden_nodes = [[DefaultNode(f"h_{l}_{n}", node_type=f"h_{l}") for n in range(l)] for l in self.hidden_layer_size]
+        self.hidden_nodes = [DefaultNode(f"h{n}", node_type="hidden") for n in range(l)]
+        self.hidden_nodes_dict = self._convert_to_dict(self.hidden_nodes)
 
         self.output_nodes = [DefaultNode(f"ou{n}", node_type="output") for n in range(3)]
         self.output_nodes_dict = self._convert_to_dict(self.output_nodes)
-        
+        """
         # 将nodes 逐层 添加到layers（list）中，实现上述layer结构
         self.layers = [self.input_nodes]    # [input_layer [nodes]]
         for _ in self.hidden_nodes:     # _ [each layer] from hidden layers
             self.layers.append(_)
         self.layers.append(self.output_nodes)   # [output layer]
-
+        """
+        """
         if self.initial_connection_type == "full":
             # connection all nodes
             for i in range(len(self.layers)-1): # other than the output layer
@@ -152,6 +153,17 @@ class DefaultGenome(object):
             for index, _ in enumerate(self.layers[1:-1]):
                 self.nodes[f"hidden_nodes_{index}"] = _
         self.nodes["output_nodes"] = self.layers[-1]
+"""
+
+    def connect_node_pair(self, node1, node2):
+        if node1.get_node_id > node2.get_node_id:
+            node1, node2 = node2, node1
+        elif node1.get_node_id == node2.get_node_id:
+            print("error, same id were given")
+        else:
+            pass
+        node1.set_info(node_next = node2)
+        node2.set_info(node_pre = node1)
 
     def mutate(self):
         if random.random() < self.node_add_prob:
@@ -174,16 +186,26 @@ class DefaultGenome(object):
         
         conn_to_split = random.choice(list(self.connection))
     
-    def mutate_add_connection(self, direction):
+    def mutate_add_connection(self, type = 'auto'):
         '''
-        :param direction: 1 = connect to former layer, 0 = to later layer
         #TODO use Uniform distribution or Gauss distribution
+        :param type =
+            auto: use probability to choose one of the types
+            #todo
+            input: connection between input and hidden
+            hidden: connection between hidden,
+            output: connection between hidden and output
         '''
-        if direction == 1: # connect to former
-            # get the list length of former layer, choose a node to connect
-
-            # check if
-        elif direction == 0:    # connect to later
+        if type == 'auto':
+            layersize = self.input_layer_size + self.hidden_layer_size
+            prob_input = 0.9*self.input_layer_size/layersize
+            prob_hidden = 0.9* self.hidden_layer_size/layersize
+            prob_output = 0.1
+            if random.random <prob_input:
+                input_node = random.randint(self.input_layer_size)
+                hidden_node = random.randint(self.hidden_layer_size)
+                self.connect_node_pair(input_node,hidden_node)
+        #update hidden layer size
 
         pass
     
@@ -201,14 +223,14 @@ class DefaultGenome(object):
 
 class DefaultNode(object):
     """
-
         class that used to define the Node information
-
     """
 
-    def __init__(self, node_name, links=None, act_func='sign', agg_func='sum', bias=0.0, response=1.0, node_type=None):
+    def __init__(self, node_name, node_pre= None, node_next = None, weight = 1, act_func='sign', agg_func='sum', bias=0.0, response=1.0, node_type=None):
         self.node_name = node_name
-        self.links = links
+        self.node_pre = node_pre
+        self.node_next = node_next
+        self.weight = weight
         self.act_func_name = act_func
         self.agg_func_name = agg_func
         if act_func == "sign":
@@ -217,11 +239,15 @@ class DefaultNode(object):
         if agg_func == 'sum':   # sign 和sum 是作为一个初始标记使用
             self.agg_func = sum
         self.bias = bias
-        self.response = response    # ?
-        self.node_type = node_type  # 标记输出、输出、隐藏层
+        self.response = response
+        self.node_type = node_type
 
-    def set_info(self, links=None, act_func='sign', agg_func='sum', bias=0.0, response=1.0):
-        self.links = links
+    def set_info(self, node_pre= None, node_next = None, weight = 1, act_func='sign', agg_func='sum', bias=0.0, response=1.0):
+        #todo: set each parameter separately
+        # https://stackoverflow.com/questions/57881381/how-to-determine-weather-the-default-parameter-values-are-used-in-the-function/57881475#57881475
+        self.node_pre = node_pre
+        self.node_next = node_next
+        self.weight = weight
         self.act_func_name = act_func
         self.agg_func_name = agg_func
         if act_func == "sign":
@@ -237,11 +263,19 @@ class DefaultNode(object):
             formatt the output of class DefaultNode
         """
 
-        data = {"node_name":self.node_name, "links":self.links, 
+        data = {"node_name":self.node_name, "node_pre":self.node_pre,"node_next":self.node_next,
                     "act_func":self.act_func_name, "agg_func":self.agg_func_name, 
                         "bias":self.bias, "response":self.response
                 }
         return f"{data}"
+
+    def get_node_id(self):
+        type, id = self.node_name.split('_')
+        return id
+    def get_node_type(self):
+        type, id = self.node_name.split('_')
+        return type
+
 def signmus_activation():
     return lambda x: x and (1, -1)[x < 0]         
 
