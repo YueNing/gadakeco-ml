@@ -129,7 +129,7 @@ class DefaultGenome(object):
 
         self.input_nodes = [DefaultNode(f"in{n}", links=None, node_type="input")
                              for n in range(self.input_layer_size)]
-        self.hidden_nodes = [DefaultNode(f"h_{n+1}", node_type=f"hidden")
+        self.hidden_nodes = [DefaultNode(f"h_{n+1}", node_type="hidden")
                              for n in range(self.hidden_layer_size)]
         self.output_nodes = [DefaultNode(f"ou{n}", node_type="output")
                              for n in range(self.output_layer_size)]
@@ -208,7 +208,7 @@ class DefaultGenome(object):
         elif mode == 'simple'
             pass
         weight = random.choice([1,-1])
-        node2.set_links(node1,weight)
+        node2.set_links((node1,weight))
 
     def mutate_add_connection(self):
         # TODO: connection mutation, use Uniform distribution or Gauss distribution
