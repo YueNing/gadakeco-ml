@@ -171,7 +171,6 @@ class DefaultGenome(object):
                 else:
                     selected_nodes.append(n)
             chosen_node = random.choice(selected_nodes)
-            print(f'length output links{chosen_node}')
             chosen_inputnode, chosen_weight = random.choice(chosen_node.links)
 
             added_node.set_links((chosen_inputnode,random.choice([-1,1])))
