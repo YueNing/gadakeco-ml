@@ -145,11 +145,9 @@ class DefaultGenome(object):
         elif self.initial_connection == "None":
             pass
         
-        self.nodes["input_nodes"] = self.layers[0]
-        if len(self.layers) > 2:
-            for index, _ in enumerate(self.layers[1:-1]):
-                self.nodes[f"hidden_nodes_{index}"] = _
-        self.nodes["output_nodes"] = self.layers[-1]
+        self.nodes["input_nodes"] = self.input_nodes_list
+        self.nodes["hidden_nodes"] = self.hidden_nodes_list
+        self.nodes["output_nodes"] = self.output_nodes_list
 
     def mutate(self):
         if random.random() < self.node_add_prob:
@@ -165,12 +163,19 @@ class DefaultGenome(object):
         self.hidden_nodes_dict['added_node.node_name'] = added_node
 
         if mode == 'break':   # 破坏一个connection，中间加塞新的node
-            # input of chosen node --> added node --> chosen node （random weight）
-            chosen_node = random.choice(self.hidden_nodes_dict.values())
+            # input of chosen node --> added node --> chosen node （random weight
+            selected_nodes = []
+            for n in self.hidden_nodes_dict.values():
+                if not n.links:
+                    pass
+                else:
+                    selected_nodes.append(n)
+            chosen_node = random.choice(selected_nodes)
+            print(f'chosen_node {chosen_node}')
             chosen_inputnode, chosen_weight = random.choice(chosen_node.links)
 
-            added_node.set_links(chosen_inputnode,random.choice([-1,1]))
-            chosen_node.set_links(added_node,random.choice([-1,1]))
+            added_node.set_links((chosen_inputnode,random.choice([-1,1])))
+            chosen_node.set_links((added_node,random.choice([-1,1])))
         else:
             pass
         '''
@@ -187,17 +192,14 @@ class DefaultGenome(object):
         each hidden node has 1 connection to input, and 1 to output
 
         '''
-        temp_list = []
-        for h in self.hidden_nodes_list:
-            temp_list += h
-        in_node  =random.choice(self.input_nodes_list + temp_list)
-        out_node =random.choice(self.output_nodes_list + temp_list)
+        in_node  =random.choice(self.input_nodes_list + self.hidden_nodes_list)
+        out_node =random.choice(self.output_nodes_list + self.hidden_nodes_list)
 
         # add connect_info to nodes, random weight
         self.connect_node_pair(in_node,out_node,'simple')
 
         # import pdb; pdb.set_trace()
-        key =(in_node.node_name, out_node.node_name)
+        key =(in_node, out_node)
 
         if key in self.connection:
             return  
@@ -210,15 +212,15 @@ class DefaultGenome(object):
 
     def connect_node_pair(self, node1, node2, mode = 'sort'):
         if mode == 'sort':  # 只允许从小id指向大id连接
-            if node1.get_node_id > node2.get_node_id:
+            if node1.get_node_id() > node2.get_node_id():
                 node1, node2 = node2, node1
-            elif node1.get_node_id == node2.get_node_id:
-                print("error, same id were given")
+            elif node1.get_node_id() == node2.get_node_id():
+                print(f"error, same id were given in mode {mode}")
             else:
                 pass
         elif mode == 'simple':  # 按给定参数顺序连接
-            if node1.get_node_id == node2.get_node_id:
-                print("error, same id were given")
+            if node1.get_node_name() == node2.get_node_name():
+                print(f"error, same id were given in mode {mode}")
             else:
                 pass
             pass
@@ -228,16 +230,16 @@ class DefaultGenome(object):
     def mutate_add_connection(self, mode = 'hh'):
         # TODO: connection mutation, use Uniform distribution or Gauss distribution
         if mode == 'hh':    # hidden --> hidden
-            node_a = random.choice(self.hidden_nodes_dict.values())
-            node_b = random.choice(self.hidden_nodes_dict.values())
+            node_a = random.choice(list(self.hidden_nodes_dict.values()))
+            node_b = random.choice(list(self.hidden_nodes_dict.values()))
             self.connect_node_pair(node_a,node_b, 'sort')
         elif mode == 'ih':  # input --> hidden
-            node_a = random.choice(self.input_nodes_dict.values())
-            node_b = random.choice(self.hidden_nodes_dict.values())
+            node_a = random.choice(list(self.input_nodes_dict.values()))
+            node_b = random.choice(list(self.hidden_nodes_dict.values()))
             node_b.set_links(node_a,random.choice([-1, 1]))
         elif mode == 'ho':  # hidden --> output
-            node_a = random.choice(self.hidden_nodes_dict.values())
-            node_b = random.choice(self.output_nodes_dict.values())
+            node_a = random.choice(list(self.hidden_nodes_dict.values()))
+            node_b = random.choice(list(self.output_nodes_dict.values()))
             node_b.set_links(node_a,random.choice([-1, 1]))
 
     def mutate_delete_node(self):
@@ -321,6 +323,12 @@ class DefaultNode(object):
         else:
             print("error! input should be [(inputnode, weight),(),()] or (inputnode, weight)")
 
+    def get_node_id(self):
+        return int(self.node_name[-1])
+    
+    def get_node_name(self):
+        return self.node_name
+    
     def __str__(self):
 
         """

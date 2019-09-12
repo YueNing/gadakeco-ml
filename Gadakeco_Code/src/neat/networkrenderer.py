@@ -35,12 +35,13 @@ def render_network(surface, network, values):
     # Zeichnen Sie hier das Netzwerk auf das Surface.
     
 
+    # TODO node_dict 只存在hidden_nodes 的位置，input_nodes 和output_nodes 的位置在画线的时候也是需要的？ 
     node_dict={}
     #save in form of {"node_name":(x.node, y.node)}
     possible_position=[(x,y) for x in range(28,60) for y in range(0,18)]
     #save all left position in Surface
 
-    for node in network.genome.hidden_nodes:
+    for node in network.genome.nodes["hidden_nodes"]:
         if node.node_name in node_dict:
             continue
         else:
@@ -65,7 +66,7 @@ def render_network(surface, network, values):
         else:
             connection_dict[key_connection]=(255,255,0)
     
-    for nodes, color_line in connection_dict:
+    for nodes, color_line in connection_dict.items():
         pygame.draw.line(surface, color_line, node_dict[nodes[0].node_name], node_dict[nodes[1].node_name], 1)
 
 
