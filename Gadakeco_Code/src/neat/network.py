@@ -171,7 +171,7 @@ class DefaultGenome(object):
                 else:
                     selected_nodes.append(n)
             chosen_node = random.choice(selected_nodes)
-            print(f'chosen_node {chosen_node}')
+            print(f'length output links{chosen_node}')
             chosen_inputnode, chosen_weight = random.choice(chosen_node.links)
 
             added_node.set_links((chosen_inputnode,random.choice([-1,1])))
@@ -214,10 +214,10 @@ class DefaultGenome(object):
         full connect input-->hidden, full connect hidden-->output  //i.e. one layer of hidden as initial
         """
         for hidden_node1 in self.hidden_nodes_dict.values():
-            for input_node_name in self.input_nodes_dict.keys():
-                hidden_node1.set_links((input_node_name, random.choice([-1,1])))
-            for output_node in self.output_nodes_dict.values:
-                output_node.set_links((hidden_node1.node_name, random.choice[-1,1]))
+            for input_node_name in self.input_nodes_dict:
+                hidden_node1.set_links((self.input_nodes_dict[input_node_name], random.choice([-1,1])))
+            for output_node in self.output_nodes_dict.values():
+                output_node.set_links((hidden_node1, random.choice([-1,1])))
 
     def connect_node_pair(self, node1, node2, mode = 'sort'):
         if mode == 'sort':  # 只允许从小id指向大id连接
@@ -247,11 +247,11 @@ class DefaultGenome(object):
         elif mode == 'ih':  # input --> hidden
             node_a = random.choice(list(self.input_nodes_dict.values()))
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
-            node_b.set_links(node_a,random.choice([-1, 1]))
+            node_b.set_links((node_a,random.choice([-1, 1])))
         elif mode == 'ho':  # hidden --> output
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.output_nodes_dict.values()))
-            node_b.set_links(node_a,random.choice([-1, 1]))
+            node_b.set_links((node_a,random.choice([-1, 1])))
 
     def mutate_delete_node(self):
 
