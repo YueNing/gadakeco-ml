@@ -218,7 +218,6 @@ class DefaultGenome(object):
                 output_node.set_links((hidden_node1.node_name, random.choice[-1,1]))
 
     def connect_node_pair(self, node1, node2, mode = 'sort'):
-
         if mode == 'sort':  # 只允许从小id指向大id连接
             if node1.get_node_id > node2.get_node_id:
                 node1, node2 = node2, node1
