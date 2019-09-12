@@ -128,7 +128,7 @@ class DefaultGenome(object):
 
         self.input_nodes_list = [DefaultNode(f"in{n}", links=None, node_type="input")
                                  for n in range(self.input_layer_size)]
-        self.hidden_nodes_list = [DefaultNode(f"h_{n + 1}", node_type=f"hidden")
+        self.hidden_nodes_list = [DefaultNode(f"h_{n + 1}", node_type="hidden")
                                   for n in range(self.hidden_layer_size)]
         self.output_nodes_list = [DefaultNode(f"ou{n}", node_type="output")
                                   for n in range(self.output_layer_size)]
@@ -140,7 +140,7 @@ class DefaultGenome(object):
 
         if self.initial_connection == "full":
             # connection all nodes
-            self.int_connection_each()
+            self.int_connection_full()
         
         elif self.initial_connection == "None":
             pass
@@ -169,8 +169,8 @@ class DefaultGenome(object):
             chosen_node = random.choice(self.hidden_nodes_dict.values())
             chosen_inputnode, chosen_weight = random.choice(chosen_node.links)
 
-            added_node.set_links(chosen_inputnode,random.choice([-1,1]))
-            chosen_node.set_links(added_node,random.choice([-1,1]))
+            added_node.set_links((chosen_inputnode,random.choice([-1,1])))
+            chosen_node.set_links((added_node,random.choice([-1,1])))
         else:
             pass
         '''
@@ -185,7 +185,7 @@ class DefaultGenome(object):
         '''
 
         each hidden node has 1 connection to input, and 1 to output
-
+        本函数弃用，其中的connection不再维护 --zheyuan
         '''
         temp_list = []
         for h in self.hidden_nodes_list:
@@ -207,6 +207,15 @@ class DefaultGenome(object):
 
         self.connection[key] = {'weight':random.uniform(-1, 1)}
 
+    def int_connection_full(self):
+        """
+        full connect input-->hidden, full connect hidden-->output  //i.e. one layer of hidden as initial
+        """
+        for hidden_node1 in self.hidden_nodes_dict.values():
+            for input_node_name in self.input_nodes_dict.keys():
+                hidden_node1.set_links((input_node_name, random.choice([-1,1])))
+            for output_node in self.output_nodes_dict.values:
+                output_node.set_links((hidden_node1.node_name, random.choice[-1,1]))
 
     def connect_node_pair(self, node1, node2, mode = 'sort'):
 
@@ -226,20 +235,22 @@ class DefaultGenome(object):
         weight = random.choice([1,-1])
         node2.set_links((node1,weight))
 
-    def mutate_add_connection(self, mode = 'hh'):
+    def mutate_add_connection(self, mode='auto'):
         # TODO: connection mutation, use Uniform distribution or Gauss distribution
-        if mode == 'hh':    # hidden --> hidden
+        if mode == 'auto':   # random choose from the following modes
+            mode = random.choice(['hh', 'ih', 'ho'])    #todo adaptive probability
+        elif mode == 'hh':    # hidden --> hidden
             node_a = random.choice(self.hidden_nodes_dict.values())
             node_b = random.choice(self.hidden_nodes_dict.values())
             self.connect_node_pair(node_a,node_b, 'sort')
         elif mode == 'ih':  # input --> hidden
             node_a = random.choice(self.input_nodes_dict.values())
             node_b = random.choice(self.hidden_nodes_dict.values())
-            node_b.set_links(node_a,random.choice([-1, 1]))
+            node_b.set_links((node_a,random.choice([-1, 1])))
         elif mode == 'ho':  # hidden --> output
+            node_b.set_links((node_a,random.choice([-1, 1])))
             node_a = random.choice(self.hidden_nodes_dict.values())
             node_b = random.choice(self.output_nodes_dict.values())
-            node_b.set_links(node_a,random.choice([-1, 1]))
 
     def mutate_delete_node(self):
 
