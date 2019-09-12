@@ -123,7 +123,7 @@ class DefaultGenome(object):
         self.nodes = collections.OrderedDict()
         self.connection = {}    # not maintained
         self.input_layer_size = 486
-        self.hidden_layer_size = 200  # TODO converted form [] to int, need to adjust other parts
+        self.hidden_layer_size = 2
         self.output_layer_size = 3
 
         self.input_nodes_list = [DefaultNode(f"in{n}", links=None, node_type="input")
@@ -156,7 +156,7 @@ class DefaultGenome(object):
             self.mutate_add_connection()
     
     # TODO: node mutation (a, b, w) -> (a, c, 1), (c, b, w)
-    def mutate_add_node(self, mode = 'break'):
+    def mutate_add_node(self, mode='break'):
         # create a new node in hidden layer
         self.hidden_layer_size += 1
         added_node = DefaultNode(f"h_{self.hidden_layer_size}", node_type=f"hidden")
