@@ -10,7 +10,7 @@ class Network:
         self.fitness = 0
         self.genome = DefaultGenome('gadakeco')
         self._mutate_add_connection()
-        self.values = {}
+        self.values = {}    # ？这个valuse是存output的？
     
     def __str__(self):
         """
@@ -28,12 +28,12 @@ class Network:
         """
         self.fitness = points - 50 * time
 
-    def evaluate(self, values):
+    def evaluate(self, input_values):
         """
         Wertet das Netzwerk aus. 
         
         Argumente:
-            values: eine Liste von 27x18 = 486 Werten, welche die aktuelle diskrete Spielsituation darstellen
+            input_values: eine Liste von 27x18 = 486 Werten, welche die aktuelle diskrete Spielsituation darstellen
                     die Werte haben folgende Bedeutung:
                      1 steht fuer begehbaren Block
                     -1 steht fuer einen Gegner
@@ -46,7 +46,7 @@ class Network:
         """
         if len(self.genome.input_nodes_dict) != len(values):
             raise RuntimeError("Expected {0:n} inputs, "
-                     "got {1:n}".format(len(self.genome.input_nodes_list), len(values)))
+                     "got {1:n}".format(len(self.genome.input_nodes_list), len(input_values)))
         for k, v in zip(self.genome.input_nodes_dict.keys(), values):
             self.values[k] = v
         # for layer in self.genome.layers[1:]:
@@ -65,17 +65,20 @@ class Network:
         return [ True if self.values[n.node_name] == 1 else False for n in self.genome.output_nodes_dict.values()]
 
     def evaluate_node(self, node):
-        if node.node_type=="input":
+        if node.node_type=="input":  #todo： type 未维护 ：维护或使用name中的类型信息
             return
         # print(node.node_name)
-        number_of_links =len(node.links)
+
+        number_of_links =len(node.links)    # for each node
+        # links内含list[(class defaultnode, weight)]
         links_with_known_value=0
+
         if node.links is None:
-            self.values[node.node_name] =0
+            self.values[node.node_name] = 0
             return self.values[node.node_name]
         for link in node.links:
             # import pdb; pdb.set_trace()
-            if link[0].node_name not in self.values:
+            if link[0].node_name not in self.values:    # 0?
                 self.evaluate_node(link[0])
                 links_with_known_value+=1
             else:
