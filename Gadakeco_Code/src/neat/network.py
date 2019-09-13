@@ -15,10 +15,10 @@ class Network:
         """
             used to print the class Network information
         """
-        network = self.genome.nodes
+        network = self.genome.nodes  #todo bug no "nodes"
         return f"{network}"
 
-    def _mutate_add_connection(self):
+    def _mutate_add_connection(self):   # 这个函数怎么不直接合并到init里？
         self.genome = DefaultGenome('gadakeco')
         self.genome.mutate_add_connection()
         
@@ -45,9 +45,9 @@ class Network:
                 b, ob die Taste "nach Rechts" gedrueckt ist
                 c, ob die Taste "springen" gedrueckt ist.
         """
-        if len(self.genome.nodes["input_nodes"]) != len(values):
+        if len(self.genome.input_nodes_dict) != len(values):
             raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.genome.input_nodes_list), len(values)))
-        for k, v in zip(self.genome.nodes["input_nodes"], values):
+        for k, v in zip(self.genome.input_nodes_dict, values):
             self.values[k.node_name] = v       
         # for layer in self.genome.layers[1:]:
         #     for node in layer:
@@ -93,7 +93,7 @@ class Network:
 class DefaultGenome(object):
     def __init__(self, key):
         self.key = key
-        # initial connection, full/none/random
+        # initial connection, full/none
         self.initial_connection = "full"
         self.node_add_prob = 0.1
         self.conn_add_prob = 0.2
@@ -126,7 +126,7 @@ class DefaultGenome(object):
         self.hidden_layer_size = 2
         self.output_layer_size = 3
 
-        self.input_nodes_list = [DefaultNode(f"in{n}", links=None, node_type="input")
+        self.input_nodes_list = [DefaultNode(f"in{n}", node_type="input")
                                  for n in range(self.input_layer_size)]
         self.hidden_nodes_list = [DefaultNode(f"h_{n + 1}", node_type="hidden")
                                   for n in range(self.hidden_layer_size)]
@@ -144,11 +144,12 @@ class DefaultGenome(object):
         
         elif self.initial_connection == "None":
             pass
-        
+        # 不再维护以下list 一律使用上述三本字典
+        """
         self.nodes["input_nodes"] = self.input_nodes_list
         self.nodes["hidden_nodes"] = self.hidden_nodes_list
         self.nodes["output_nodes"] = self.output_nodes_list
-
+"""
     def mutate(self):
         if random.random() < self.node_add_prob:
             self.mutate_add_node()
