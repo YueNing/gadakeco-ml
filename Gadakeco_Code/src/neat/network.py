@@ -16,7 +16,9 @@ class Network:
         """
             used to print the class Network information
         """
-        network =list(self.genome.input_nodes_dict.values()) + list(self.genome.hidden_nodes_dict.values()) + list(self.genome.output_nodes_dict.values())
+        network =self.genome.input_nodes_list + self.genome.hidden_nodes_list + self.genome.output_nodes_list
+
+        return f"{network}"
 
     def _mutate_add_connection(self):   # 这个函数怎么不直接合并到init里？
         self.genome.mutate_add_connection()
@@ -44,52 +46,32 @@ class Network:
                 b, ob die Taste "nach Rechts" gedrueckt ist
                 c, ob die Taste "springen" gedrueckt ist.
         """
-        if len(self.genome.input_nodes_dict) != len(values):
-            raise RuntimeError("Expected {0:n} inputs, "
-                     "got {1:n}".format(len(self.genome.input_nodes_list), len(input_values)))
-        for k, v in zip(self.genome.input_nodes_dict.keys(), values):
+        if len(self.genome.input_nodes_dict) != len(input_values):
+            raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.genome.input_nodes_list), len(input_values)))
+        for k, v in zip(self.genome.input_nodes_dict.keys(), input_values):
             self.values[k] = v
-        # for layer in self.genome.layers[1:]:
-        #     for node in layer:
-        #         node_inputs = []
-        #         if node.links is not None:
-        #             for i, w in node.links:
-        #                 node_inputs.append(self.values[i] * w)
-        #             s = node.agg_func(node_inputs)
-        #             self.values[node.node_name] = node.act_func(node.bias + node.response * s)
-        #         else:
-        #             self.values[node.node_name] = None
-        # import pdb; pdb.set_trace()
         for n in self.genome.output_nodes_dict.values():
             self.evaluate_node(n)
+            #calculate the value of the output_node and save them into self.values list.
         return [ True if self.values[n.node_name] == 1 else False for n in self.genome.output_nodes_dict.values()]
 
     def evaluate_node(self, node):
         if node.node_type=="input":  #todo： type 未维护 ：维护或使用name中的类型信息
             return
         # print(node.node_name)
-
-        number_of_links =len(node.links)    # for each node
         # links内含list[(class defaultnode, weight)]
-        links_with_known_value=0
 
         if node.links is None:
             self.values[node.node_name] = 0
-            return self.values[node.node_name]
         for link in node.links:
             # import pdb; pdb.set_trace()
             if link[0].node_name not in self.values:    # 0?
                 self.evaluate_node(link[0])
-                links_with_known_value+=1
-            else:
-                links_with_known_value+=1
-        if links_with_known_value==number_of_links:
-            node_inputs = []
-            for i, w in node.links:
-                node_inputs.append(self.values[i.node_name] * w)
-            s = node.agg_func(node_inputs)
-            self.values[node.node_name] = node.act_func(node.bias + node.response * s)
-            return  self.values[node.node_name]
+        node_inputs = []
+        for i, w in node.links:
+            node_inputs.append(self.values[i.node_name] * w)
+        s = node.agg_func(node_inputs)
+        self.values[node.node_name] = node.act_func(node.bias + node.response * s)
         # print(self.values)
             
 
@@ -123,8 +105,8 @@ class DefaultGenome(object):
         # hidden layer doesn't have further layers anymore
         # all information stored in nodes
 
-        self.nodes = collections.OrderedDict()
-        self.connection = {}    # not maintained
+        #self.nodes = collections.OrderedDict()
+        #self.connection = {}    # not maintained
         self.input_layer_size = 486
         self.hidden_layer_size = 2
         self.output_layer_size = 3
