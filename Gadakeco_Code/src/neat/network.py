@@ -8,6 +8,7 @@ class Network:
 
     def __init__(self):
         self.fitness = 0
+        self.genome = DefaultGenome('gadakeco')
         self._mutate_add_connection()
         self.values = {}
     
@@ -15,11 +16,9 @@ class Network:
         """
             used to print the class Network information
         """
-        network = self.genome.nodes  #todo bug no "nodes"
-        return f"{network}"
+        network =list(self.genome.input_nodes_dict.values()) + list(self.genome.hidden_nodes_dict.values()) + list(self.genome.output_nodes_dict.values())
 
     def _mutate_add_connection(self):   # 这个函数怎么不直接合并到init里？
-        self.genome = DefaultGenome('gadakeco')
         self.genome.mutate_add_connection()
         
     def update_fitness(self, points, time):
@@ -46,9 +45,10 @@ class Network:
                 c, ob die Taste "springen" gedrueckt ist.
         """
         if len(self.genome.input_nodes_dict) != len(values):
-            raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.genome.input_nodes_list), len(values)))
-        for k, v in zip(self.genome.input_nodes_dict, values):
-            self.values[k.node_name] = v       
+            raise RuntimeError("Expected {0:n} inputs, "
+                     "got {1:n}".format(len(self.genome.input_nodes_list), len(values)))
+        for k, v in zip(self.genome.input_nodes_dict.keys(), values):
+            self.values[k] = v
         # for layer in self.genome.layers[1:]:
         #     for node in layer:
         #         node_inputs = []
@@ -60,9 +60,9 @@ class Network:
         #         else:
         #             self.values[node.node_name] = None
         # import pdb; pdb.set_trace()
-        for n in self.genome.nodes["output_nodes"]:
+        for n in self.genome.output_nodes_dict.values():
             self.evaluate_node(n)
-        return [ True if self.values[n.node_name] == 1 else False for n in self.genome.nodes["output_nodes"]]
+        return [ True if self.values[n.node_name] == 1 else False for n in self.genome.output_nodes_dict.values()]
 
     def evaluate_node(self, node):
         if node.node_type=="input":
