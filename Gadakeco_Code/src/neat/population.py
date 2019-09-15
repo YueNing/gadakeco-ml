@@ -2,6 +2,7 @@ from neat.network import Network
 import time
 import dill as pickle
 import gzip
+import copy
 
 class Population():
     def __init__(self, seed, size, initial_state=None):
@@ -61,9 +62,13 @@ class Population():
         survive_network = sorted(self.current_generation, key=lambda x: x.fitness, reverse=True)[:survive_size]
         
         # mutation
-        used_network = [survive_network[n%survive_size] for n in range(mutated_size)]
+        used_network = [copy.deepcopy(survive_network) for n in range(int(mutated_size/survive_size))]
+        for n in range(mutated_size%survive_size):
+            used_network.append(survive_network[n]) 
+        #https://www.python-course.eu/python3_deep_copy.php (deepcopy)
         mutated_connection_network = used_network[:int(0.8*len(used_network))]
         mutated_node_network = used_network[-int(0.2*len(used_network)):]
+        #import pdb; pdb.set_trace()
         for n in mutated_connection_network:
             n.genome.mutate_add_connection()
         for n in mutated_node_network:

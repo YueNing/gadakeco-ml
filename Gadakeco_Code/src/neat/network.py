@@ -9,8 +9,8 @@ class Network:
     def __init__(self):
         self.fitness = 0
         self.genome = DefaultGenome('gadakeco')
-        self._mutate_add_connection()
-        self.values = {}    # ？这个valuse是存output的？
+        self.values = {}    # save all the values in nodes
+        #self._mutate_add_connection() should not be used. mutate_* function only will be called in population.py
     
     def __str__(self):
         """
@@ -20,8 +20,8 @@ class Network:
 
         return f"{network}"
 
-    def _mutate_add_connection(self):   # 这个函数怎么不直接合并到init里？
-        self.genome.mutate_add_connection()
+    #def _mutate_add_connection(self):  
+    #    self.genome.mutate_add_connection()
         
     def update_fitness(self, points, time):
         """
@@ -134,12 +134,13 @@ class DefaultGenome(object):
         self.nodes["input_nodes"] = self.input_nodes_list
         self.nodes["hidden_nodes"] = self.hidden_nodes_list
         self.nodes["output_nodes"] = self.output_nodes_list
-"""
-    def mutate(self):
+    """
+    def mutate(self):#it is not be used
         if random.random() < self.node_add_prob:
             self.mutate_add_node()
         if random.random() < self.conn_add_prob:
             self.mutate_add_connection()
+        
     
     # TODO: node mutation (a, b, w) -> (a, c, 1), (c, b, w)
     def mutate_add_node(self, mode='break'):
@@ -163,36 +164,6 @@ class DefaultGenome(object):
             chosen_node.set_links((added_node,random.choice([-1,1])))
         else:
             pass
-        '''
-        # the connection parameter below is no longer maintained
-        if not self.connection:
-            self.mutate_add_connection()
-            return
-        conn_to_split = random.choice(list(self.connection))
-        '''
-
-    def int_connection_each(self):
-        '''
-
-        each hidden node has 1 connection to input, and 1 to output
-        本函数弃用，其中的connection不再维护 --zheyuan
-        '''
-        in_node  =random.choice(self.input_nodes_list + self.hidden_nodes_list)
-        out_node =random.choice(self.output_nodes_list + self.hidden_nodes_list)
-
-        # add connect_info to nodes, random weight
-        self.connect_node_pair(in_node,out_node,'simple')
-
-        # import pdb; pdb.set_trace()
-        key =(in_node, out_node)
-
-        if key in self.connection:
-            return  
-        
-        if self.creates_cycle(list(self.connection), (in_node, out_node)):
-            return
-
-        self.connection[key] = {'weight':random.uniform(-1, 1)}
 
     def int_connection_full(self):
         """
@@ -264,29 +235,6 @@ class DefaultGenome(object):
             else:
                 pass
 
-    @staticmethod
-    def creates_cycle(connections, test):
-        """
-        Returns true if the addition of the 'test' connection would create a cycle,
-        assuming that no cycle already exists in the graph represented by 'connections'.
-        """
-        i, o = test
-        if i == o:
-            return True
-    
-        visited = {o}
-        while True:
-            num_added = 0
-            for a, b in connections:
-                if a in visited and b not in visited:
-                    if b == i:
-                        return True
-
-                    visited.add(b)
-                    num_added += 1
-
-            if num_added == 0:
-                return False
 
 class DefaultNode(object):
     """
