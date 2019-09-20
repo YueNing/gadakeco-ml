@@ -44,54 +44,46 @@ class Network:
                 b, ob die Taste "nach Rechts" gedrueckt ist
                 c, ob die Taste "springen" gedrueckt ist.
         """
-        if len(self.genome.input_nodes_dict) != len(values):
+        if len(self.genome.input_nodes_dict) != len(input_values):
             raise RuntimeError("Expected {0:n} inputs, "
                      "got {1:n}".format(len(self.genome.input_nodes_list), len(input_values)))
-        for k, v in zip(self.genome.input_nodes_dict.keys(), values):
-            self.values[k] = v
-        # for layer in self.genome.layers[1:]:
-        #     for node in layer:
-        #         node_inputs = []
-        #         if node.links is not None:
-        #             for i, w in node.links:
-        #                 node_inputs.append(self.values[i] * w)
-        #             s = node.agg_func(node_inputs)
-        #             self.values[node.node_name] = node.act_func(node.bias + node.response * s)
-        #         else:
-        #             self.values[node.node_name] = None
-        # import pdb; pdb.set_trace()
+        for k, v in zip(self.genome.input_nodes_dict.keys(), input_values):
+            self.values[k] = v  # 以字典形式存储输入 node_name:input_values
         for n in self.genome.output_nodes_dict.values():
             self.evaluate_node(n)
-        return [ True if self.values[n.node_name] == 1 else False for n in self.genome.output_nodes_dict.values()]
+        return [True if self.values[n.node_name] == 1 else False for n in self.genome.output_nodes_dict.values()]
 
     def evaluate_node(self, node):
-        if node.node_type=="input":  #todo： type 未维护 ：维护或使用name中的类型信息
+        """
+        迭代评估每个node的输出，从output向前追溯每层相关的inputnode
+        主程序中对每个output调用本函数即可
+        """
+        if node.node_type=="input":  # ps type数据仅在初始化时有维护
             return
-        # print(node.node_name)
-
-        number_of_links =len(node.links)    # for each node
-        # links内含list[(class defaultnode, weight)]
-        links_with_known_value=0
-
         if node.links is None:
-            self.values[node.node_name] = 0
+            self.values[node.node_name] = 0 # values是在evaluate时保存输入的图像的字典
             return self.values[node.node_name]
+
+        number_of_links = len(node.links)  # 数据结构：每个node的输入links = [(inputnode, weight),(),()]
+        links_with_known_value = 0
+
         for link in node.links:
             # import pdb; pdb.set_trace()
-            if link[0].node_name not in self.values:    # 0?
-                self.evaluate_node(link[0])
-                links_with_known_value+=1
+            if link[0].node_name not in self.values:    # link：[节点，权重]
+                self.evaluate_node(link[0]) # 调用函数本身 #todo debug 循环调用出错
+                links_with_known_value += 1
             else:
-                links_with_known_value+=1
-        if links_with_known_value==number_of_links:
-            node_inputs = []
-            for i, w in node.links:
-                node_inputs.append(self.values[i.node_name] * w)
-            s = node.agg_func(node_inputs)
-            self.values[node.node_name] = node.act_func(node.bias + node.response * s)
-            return  self.values[node.node_name]
-        # print(self.values)
-            
+                links_with_known_value += 1
+
+            if links_with_known_value == number_of_links:
+                node_inputs = []
+                for i, w in node.links:
+                    node_inputs.append(self.values[i.node_name] * w)
+                s = node.agg_func(node_inputs)
+                self.values[node.node_name] = node.act_func(node.bias + node.response * s)
+                #计算出node的value保存在values字典中
+                return self.values[node.node_name]
+
 
 class DefaultGenome(object):
     def __init__(self, key):
