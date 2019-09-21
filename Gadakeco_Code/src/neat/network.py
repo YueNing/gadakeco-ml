@@ -64,7 +64,7 @@ class Network:
         if node.node_type=="input":  # ps type数据仅在初始化时有维护
             return
         if node.links is None:
-            self.values[node.node_name] = 0 # values是在evaluate时保存输入的图像的字典
+            self.values[node.node_name] = 0 # values是在evaluate时保存输入的图像的字典 key=node_name
             return self.values[node.node_name]
 
         number_of_links = len(node.links)  # 数据结构：每个node的输入links = [(inputnode, weight),(),()]
@@ -80,10 +80,10 @@ class Network:
 
             if links_with_known_value == number_of_links:
                 node_inputs = []
-                for i, w in node.links:
+                for i, w in node.links:  #todo bug? links 数据结构[()()()]
                     node_inputs.append(self.values[i.node_name] * w)
-                s = node.agg_func(node_inputs)
-                self.values[node.node_name] = node.act_func(node.bias + node.response * s)
+                suminput = node.agg_func(node_inputs)
+                self.values[node.node_name] = node.act_func(node.bias + node.response * suminput)
                 #计算出node的value保存在values字典中
                 return self.values[node.node_name]
 
@@ -124,11 +124,11 @@ class DefaultGenome(object):
         self.hidden_layer_size = 50
         self.output_layer_size = 3
 
-        self.input_nodes_list = [DefaultNode(f"in{n}", node_type="input")
+        self.input_nodes_list = [DefaultNode(f"in_{n}", node_type="input")
                                  for n in range(self.input_layer_size)]
         self.hidden_nodes_list = [DefaultNode(f"h_{n + 1}", node_type="hidden")
                                   for n in range(self.hidden_layer_size)]
-        self.output_nodes_list = [DefaultNode(f"ou{n}", node_type="output")
+        self.output_nodes_list = [DefaultNode(f"out_{n}", node_type="output")
                                   for n in range(self.output_layer_size)]
         # convert to dictionary, the lists above are temp parameters
         # dictionary structure = {"DefaultNode.node_name":DefaultNode, , }
@@ -163,15 +163,16 @@ class DefaultGenome(object):
             if node1.get_node_id() > node2.get_node_id():
                 node1, node2 = node2, node1
             elif node1.get_node_id() == node2.get_node_id():
-                print(f"error, same id were given in mode {mode}")
+                print(f"warning, same id were given in mode '{mode}' while connecting 2 nodes")
+                return
             else:
                 pass
         elif mode == 'simple':  # 按给定参数顺序连接
-            if node1.get_node_name() == node2.get_node_name():
-                print(f"error, same id were given in mode {mode}")
+            if node1.get_node_id() == node2.get_node_id():
+                print(f"warning, same id were given in mode '{mode}' while connecting 2 nodes")
+                return
             else:
                 pass
-            pass
         weight = random.choice([1,-1])
         node2.set_links((node1,weight))
 
@@ -259,7 +260,7 @@ class DefaultNode(object):
         self.agg_func_name = agg_func
         if act_func == "sign":
             self.act_func = signmus_activation()
-        if agg_func == 'sum':   # sign 和sum 是作为一个初始标记使用？
+        if agg_func == 'sum':
             self.agg_func = sum
         self.bias = bias
         self.response = response
@@ -274,7 +275,9 @@ class DefaultNode(object):
             print("error! input should be [(inputnode, weight),(),()] or (inputnode, weight)")
 
     def get_node_id(self):
-        return int(self.node_name[-1])
+        type, id =self.node_name.split("_")
+        #print(type,id, self.node_name)
+        return id
     
     def get_node_name(self):
         return self.node_name

@@ -28,7 +28,6 @@ def init():
     from context.mainmenucontext import MainMenuContext
     context = MainMenuContext(setContext)
 
-
 def main():
     init()
     print(GAME_NAME + " started")

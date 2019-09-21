@@ -2,10 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6f4045e7-a6ac-45d4-9559-9549e79c0f89" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gadakeco-neat.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gadakeco-neat.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gadakeco_Code/src/main_simulation.py" beforeDir="false" afterPath="$PROJECT_DIR$/Gadakeco_Code/src/main_simulation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gadakeco_Code/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Gadakeco_Code/src/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gadakeco_Code/src/neat/network.py" beforeDir="false" afterPath="$PROJECT_DIR$/Gadakeco_Code/src/neat/network.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gadakeco_Code/src/neat/population.py" beforeDir="false" afterPath="$PROJECT_DIR$/Gadakeco_Code/src/neat/population.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gadakeco_Code/src/neat/networkrenderer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Gadakeco_Code/src/neat/networkrenderer.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -20,7 +22,16 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="PyConsoleConfigurable.Python Console" />
+  </component>
+  <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings module-name="gadakeco-neat" is-module-sdk="true" working-directory="$PROJECT_DIR$">
+        <option name="myUseModuleSdk" value="true" />
+        <option name="myModuleName" value="gadakeco-neat" />
+        <option name="myWorkingDirectory" value="$PROJECT_DIR$" />
+      </console-settings>
+    </option>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">

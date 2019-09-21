@@ -107,8 +107,7 @@ logs/
 .idea/misc.xml
 .idea/inspectionProfiles/profiles_settings.xml
 .idea/workspace.xml
-.idea/workspace.xml
-.idea/workspace.xml
+
 
 ###
 Gadakeco_Code/res/networks/*.pop
@@ -116,6 +115,4 @@ Gadakeco_Code/res/config.json/
 
 # .idea
 .idea/
-.idea/workspace.xml
-.idea/workspace.xml
 .idea/workspace.xml

@@ -54,7 +54,6 @@ def render_network(surface, network, values):
         y=node_dict[_][1]
         surface.fill(colors[1], (TILESIZE * x, TILESIZE * y, TILESIZE, TILESIZE))
         pygame.draw.rect(surface, (0, 0, 0), (TILESIZE * x, TILESIZE * y, TILESIZE, TILESIZE), 1)
-    
 
     connection_dict={}
 
