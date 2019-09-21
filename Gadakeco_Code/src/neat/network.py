@@ -48,7 +48,9 @@ class Network:
         """
         if len(self.genome.input_nodes_dict) != len(input_values):
             raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.genome.input_nodes_list), len(input_values)))
-        
+        if sum(input_values) == 0:
+            print("warning, the sum of input = 0")
+            return
         for k, v in zip(self.genome.input_nodes_dict.keys(), input_values):
             self.values[k] = v
         for n in self.genome.output_nodes_dict.values():
@@ -91,10 +93,10 @@ class Network:
 class DefaultGenome(object):
     def __init__(self, key):
         self.key = key
-        # initial connection, full/none/random
-        self.initial_connection = "random"
-        self.node_add_prob = 0.1
-        self.conn_add_prob = 0.2
+        # initial connection, full/none/random/layer # todo: bug when intialize with random connection
+        self.initial_connection = "full"
+        self.node_add_prob = 0.5
+        self.conn_add_prob = 0.5
         self._set_genome()
     
     def _convert_to_dict(self, data):
@@ -113,7 +115,39 @@ class DefaultGenome(object):
             elif isinstance(k, DefaultNode):
                 dict_data[k.node_name] = k
         return dict_data
-    
+
+    def _connect_node_pair(self, node1, node2, mode ='sort'):
+        """工具函数，类内部使用
+        :parameter mode = sort/simple
+        """
+        if mode == 'sort':  # 只允许从小id指向大id连接
+            if node1.get_node_id() > node2.get_node_id():
+                node1, node2 = node2, node1
+            elif node1.get_node_id() == node2.get_node_id():
+                print(f"warning, same id were given in mode '{mode}' while connecting 2 nodes")
+                return
+            else:
+                pass
+        elif mode == 'simple':  # 按给定参数顺序连接
+            if node1.get_node_id() == node2.get_node_id():
+                print(f"warning, same id were given in mode '{mode}' while connecting 2 nodes")
+                return
+            else:
+                pass
+        weight = random.choice([1,-1])
+        node2.set_links((node1,weight))
+
+    def _connect_node_full_init(self, prelayer, thislayer, nextlayer):
+        """
+        类内工具，向前向后层进行全连接
+        :param：需要输入字典， 比如self.input_nodes_dict
+        """
+        for hidden_node1 in thislayer.values():
+            for input_node_name in prelayer:
+                hidden_node1.set_links((prelayer[input_node_name], random.choice([-1, 1])))
+            for output_node in nextlayer.values():
+                output_node.set_links((hidden_node1, random.choice([-1, 1])))
+
     def _set_genome(self):
         # hidden layer doesn't have further layers anymore
         # all information stored in nodes
@@ -139,42 +173,39 @@ class DefaultGenome(object):
         if self.initial_connection == "full":
             #full connect input-->hidden, full connect hidden-->output
             # //i.e. one layer of hidden as initial
+
             for hidden_node1 in self.hidden_nodes_dict.values():
                 for input_node_name in self.input_nodes_dict:
                     hidden_node1.set_links((self.input_nodes_dict[input_node_name], random.choice([-1, 1])))
                 for output_node in self.output_nodes_dict.values():
                     output_node.set_links((hidden_node1, random.choice([-1, 1])))
 
+            #self._connect_node_full_init(self.input_nodes_dict, self.hidden_nodes_dict, self.output_nodes_dict)
+
         elif self.initial_connection =="random":
             #use add_connection mutation to initialize the network\
-            for i in range (self.hidden_layer_size):   #todo 不能保证有input-output的通路
+            for i in range (self.hidden_layer_size):   #todo 不能保证有input-output的通路，在evaluate时有bug
                 self.mutate_add_connection(mode='ih')
                 self.mutate_add_connection(mode='ho')
                 self.mutate_add_connection(mode='hh')
                 self.mutate_add_connection(mode='auto')
-        elif self.initial_connection == "None":
-            pass
 
-    def connect_node_pair(self, node1, node2, mode = 'sort'):
-        """工具函数，类内部使用
-        :parameter mode = sort/simple
-        """
-        if mode == 'sort':  # 只允许从小id指向大id连接
-            if node1.get_node_id() > node2.get_node_id():
-                node1, node2 = node2, node1
-            elif node1.get_node_id() == node2.get_node_id():
-                print(f"warning, same id were given in mode '{mode}' while connecting 2 nodes")
-                return
-            else:
-                pass
-        elif mode == 'simple':  # 按给定参数顺序连接
-            if node1.get_node_id() == node2.get_node_id():
-                print(f"warning, same id were given in mode '{mode}' while connecting 2 nodes")
-                return
-            else:
-                pass
-        weight = random.choice([1,-1])
-        node2.set_links((node1,weight))
+        elif self.initial_connection == "layer":
+            layer_dict1 = {}
+            layer_dict2 = {}
+            for hidden_node in self.hidden_nodes_dict.keys():
+                temp, id_int = hidden_node.split("_")
+
+                if int(id_int) < self.hidden_layer_size:
+                    layer_dict1[hidden_node] = self.hidden_nodes_dict[hidden_node]
+                else:
+                    layer_dict2[hidden_node] = self.hidden_nodes_dict[hidden_node]
+            self._connect_node_full_init(self.input_nodes_dict, layer_dict1, layer_dict2)
+            self._connect_node_full_init(layer_dict1, layer_dict2, self.output_nodes_dict)
+            # todo layer dict12 之间连接了两遍
+        elif self.initial_connection == "None":
+            print("Error! undefined keyword was given in initializing")
+
 
     def mutate_add_node(self, mode='break'):
         # node mutation (a, b, w) -> (a, c, 1), (c, b, w)
@@ -206,7 +237,7 @@ class DefaultGenome(object):
         if mode == 'hh':    # hidden --> hidden
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
-            self.connect_node_pair(node_a,node_b, 'sort')
+            self._connect_node_pair(node_a, node_b, 'sort')
         elif mode == 'ih':  # input --> hidden
             node_a = random.choice(list(self.input_nodes_dict.values()))
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
