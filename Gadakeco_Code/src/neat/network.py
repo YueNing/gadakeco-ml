@@ -121,7 +121,7 @@ class DefaultGenome(object):
         #self.nodes = collections.OrderedDict()
         #self.connection = {}    # not maintained
         self.input_layer_size = 486
-        self.hidden_layer_size = 2
+        self.hidden_layer_size = 50
         self.output_layer_size = 3
 
         self.input_nodes_list = [DefaultNode(f"in{n}", node_type="input")
@@ -148,15 +148,45 @@ class DefaultGenome(object):
         self.nodes["hidden_nodes"] = self.hidden_nodes_list
         self.nodes["output_nodes"] = self.output_nodes_list
     """
+    """    
     def mutate(self):#it is not be used
         if random.random() < self.node_add_prob:
             self.mutate_add_node()
         if random.random() < self.conn_add_prob:
             self.mutate_add_connection()
-        
-    
-    # TODO: node mutation (a, b, w) -> (a, c, 1), (c, b, w)
+    """
+
+
+    def int_connection_full(self):
+        """
+        full connect input-->hidden, full connect hidden-->output  //i.e. one layer of hidden as initial
+        """
+        for hidden_node1 in self.hidden_nodes_dict.values():
+            for input_node_name in self.input_nodes_dict:
+                hidden_node1.set_links((self.input_nodes_dict[input_node_name], random.choice([-1,1])))
+            for output_node in self.output_nodes_dict.values():
+                output_node.set_links((hidden_node1, random.choice([-1,1])))
+
+    def connect_node_pair(self, node1, node2, mode = 'sort'):
+        """工具函数，类内部使用"""
+        if mode == 'sort':  # 只允许从小id指向大id连接
+            if node1.get_node_id() > node2.get_node_id():
+                node1, node2 = node2, node1
+            elif node1.get_node_id() == node2.get_node_id():
+                print(f"error, same id were given in mode {mode}")
+            else:
+                pass
+        elif mode == 'simple':  # 按给定参数顺序连接
+            if node1.get_node_name() == node2.get_node_name():
+                print(f"error, same id were given in mode {mode}")
+            else:
+                pass
+            pass
+        weight = random.choice([1,-1])
+        node2.set_links((node1,weight))
+
     def mutate_add_node(self, mode='break'):
+        # node mutation (a, b, w) -> (a, c, 1), (c, b, w)
         # create a new node in hidden layer
         self.hidden_layer_size += 1
         added_node = DefaultNode(f"h_{self.hidden_layer_size}", node_type=f"hidden")
@@ -177,33 +207,6 @@ class DefaultGenome(object):
             chosen_node.set_links((added_node,random.choice([-1,1])))
         else:
             pass
-
-    def int_connection_full(self):
-        """
-        full connect input-->hidden, full connect hidden-->output  //i.e. one layer of hidden as initial
-        """
-        for hidden_node1 in self.hidden_nodes_dict.values():
-            for input_node_name in self.input_nodes_dict:
-                hidden_node1.set_links((self.input_nodes_dict[input_node_name], random.choice([-1,1])))
-            for output_node in self.output_nodes_dict.values():
-                output_node.set_links((hidden_node1, random.choice([-1,1])))
-
-    def connect_node_pair(self, node1, node2, mode = 'sort'):
-        if mode == 'sort':  # 只允许从小id指向大id连接
-            if node1.get_node_id() > node2.get_node_id():
-                node1, node2 = node2, node1
-            elif node1.get_node_id() == node2.get_node_id():
-                print(f"error, same id were given in mode {mode}")
-            else:
-                pass
-        elif mode == 'simple':  # 按给定参数顺序连接
-            if node1.get_node_name() == node2.get_node_name():
-                print(f"error, same id were given in mode {mode}")
-            else:
-                pass
-            pass
-        weight = random.choice([1,-1])
-        node2.set_links((node1,weight))
 
     def mutate_add_connection(self, mode='auto'):
         # TODO: connection mutation, use Uniform distribution or Gauss distribution

@@ -45,9 +45,9 @@ class Population():
 
         # Save the data
         with gzip.open(filename, 'w', compresslevel=5) as f:
-#             data = (self.current_generation, config, population, species_set, random.getstate())
+            #data = (self.current_generation, config, population, species_set, random.getstate())   #todo 这啥呀，里面的参数都没定义
             data = (self.seed, self.generation_count, self.current_generation)
-            print(data[2][0].genome.output_nodes_list[0]) #where will it be printed?
+            print(data[2][0].genome.output_nodes_list[0]) # where will it be printed?
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def create_next_generation(self):
