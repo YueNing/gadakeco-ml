@@ -11,7 +11,7 @@ class Network:
         self.genome = DefaultGenome('gadakeco')
         self.values = {}    # save all the values in nodes
         #self._mutate_add_connection() should not be used. mutate_* function only will be called in population.py
-    
+
     def __str__(self):
         """
             used to print the class Network information
@@ -91,8 +91,8 @@ class Network:
 class DefaultGenome(object):
     def __init__(self, key):
         self.key = key
-        # initial connection, full/none
-        self.initial_connection = "full"
+        # initial connection, full/none/random
+        self.initial_connection = "random"
         self.node_add_prob = 0.1
         self.conn_add_prob = 0.2
         self._set_genome()
@@ -137,38 +137,28 @@ class DefaultGenome(object):
         self.output_nodes_dict = self._convert_to_dict(self.output_nodes_list)
 
         if self.initial_connection == "full":
-            # connection all nodes
-            self.int_connection_full()
-        
+            #full connect input-->hidden, full connect hidden-->output
+            # //i.e. one layer of hidden as initial
+            for hidden_node1 in self.hidden_nodes_dict.values():
+                for input_node_name in self.input_nodes_dict:
+                    hidden_node1.set_links((self.input_nodes_dict[input_node_name], random.choice([-1, 1])))
+                for output_node in self.output_nodes_dict.values():
+                    output_node.set_links((hidden_node1, random.choice([-1, 1])))
+
+        elif self.initial_connection =="random":
+            #use add_connection mutation to initialize the network\
+            for i in range (self.hidden_layer_size):   #todo 不能保证有input-output的通路
+                self.mutate_add_connection(mode='ih')
+                self.mutate_add_connection(mode='ho')
+                self.mutate_add_connection(mode='hh')
+                self.mutate_add_connection(mode='auto')
         elif self.initial_connection == "None":
             pass
-        # 不再维护以下list 一律使用上述三本字典
-        """
-        self.nodes["input_nodes"] = self.input_nodes_list
-        self.nodes["hidden_nodes"] = self.hidden_nodes_list
-        self.nodes["output_nodes"] = self.output_nodes_list
-    """
-    """    
-    def mutate(self):#it is not be used
-        if random.random() < self.node_add_prob:
-            self.mutate_add_node()
-        if random.random() < self.conn_add_prob:
-            self.mutate_add_connection()
-    """
-
-
-    def int_connection_full(self):
-        """
-        full connect input-->hidden, full connect hidden-->output  //i.e. one layer of hidden as initial
-        """
-        for hidden_node1 in self.hidden_nodes_dict.values():
-            for input_node_name in self.input_nodes_dict:
-                hidden_node1.set_links((self.input_nodes_dict[input_node_name], random.choice([-1,1])))
-            for output_node in self.output_nodes_dict.values():
-                output_node.set_links((hidden_node1, random.choice([-1,1])))
 
     def connect_node_pair(self, node1, node2, mode = 'sort'):
-        """工具函数，类内部使用"""
+        """工具函数，类内部使用
+        :parameter mode = sort/simple
+        """
         if mode == 'sort':  # 只允许从小id指向大id连接
             if node1.get_node_id() > node2.get_node_id():
                 node1, node2 = node2, node1

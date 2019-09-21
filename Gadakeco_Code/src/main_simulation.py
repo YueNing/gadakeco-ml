@@ -7,7 +7,7 @@ from neat.population import Population
 from world import NeuronalWorld
 
 number_of_processes = min(100, max(multiprocessing.cpu_count() - 2, 1))
-pop_name = "29-06-2019_13-08-0"
+pop_name = "29-06-2019_13-08-0"  # ?这个怎么是静态的orz
 
 
 def evaluate(world):

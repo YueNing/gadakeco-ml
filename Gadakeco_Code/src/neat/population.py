@@ -1,4 +1,4 @@
-from neat.network import Network
+from network import Network     #这为啥报错啊？没毛病啊
 import time
 import dill as pickle
 import gzip
@@ -67,7 +67,7 @@ class Population():
             used_network += copy.deepcopy(survive_network) 
         for n in range(mutated_size%survive_size):
             used_network.append(survive_network[n]) 
-        #https://www.python-course.eu/python3_deep_copy.php (deepcopy)
+        # https://www.python-course.eu/python3_deep_copy.php (deepcopy)
         mutated_connection_network = used_network[:int(0.8*len(used_network))]
         mutated_node_network = used_network[-int(0.2*len(used_network)):]
         # import pdb; pdb.set_trace()
