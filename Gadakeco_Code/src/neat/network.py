@@ -56,8 +56,7 @@ class Network:
         for node in self.genome.output_nodes_dict.values():
             self.evaluate_node(node)
             # calculate the value of the output_node and save them into self.values list
-        return [ True if self.values[node.node_name] > 0.5 else False for n in self.genome.output_nodes_dict.values()]
-        # 调试，上述if原本判定为==1
+        return [ True if self.values[node.node_name] == 1 else False for n in self.genome.output_nodes_dict.values()]
 
     def evaluate_node(self, node):
         """
@@ -222,10 +221,13 @@ class DefaultGenome(object):
             print("Error! undefined keyword was given in initializing")
 
     def mutate_add_node(self, mode='break'):
-        # node mutation (a, b, w) -> (a, c, 1), (c, b, w)
-        # create a new node in hidden layer
+        """
+        node mutation (a, b, w) -> (a, c, 1), (c, b, w)
+        create a new node in hidden layer
+        """
+        # register the added node in dict
         self.hidden_layer_size += 1
-        added_node = DefaultNode(f"h_{self.hidden_layer_size}", node_type=f"hidden")
+        added_node = DefaultNode(f"h_{self.hidden_layer_size}", node_type="hidden")
         self.hidden_nodes_dict['added_node.node_name'] = added_node
 
         if mode == 'break':   # 破坏一个connection，中间加塞新的node
@@ -264,7 +266,7 @@ class DefaultGenome(object):
             node_b = random.choice(list(self.output_nodes_dict.values()))
             node_b.set_links((node_a,random.choice([-1, 1])))
             print(node_a)
-        elif mode =='weight':
+        elif mode =='weight': # random change the weights of all in-connections of a node
             weight_change_node = random.choice(list(self.hidden_nodes_dict.values()))
             weight_change_node.set_links((weight_change_node,1) ,mode='weight')
             #tiaoshi
@@ -323,7 +325,7 @@ class DefaultNode(object):
         self.response = response
         self.node_type = node_type  # 标记输出、输出、隐藏层
 
-    def set_links(self, newlink, mode = 'add'):
+    def set_links(self, newlink, mode='add'):
         if mode == 'add':
             if type(newlink) == list:   # [(inputnode, weight),(),()]
                 self.links.extend(newlink)
