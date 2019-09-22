@@ -53,10 +53,11 @@ class Network:
             return
         for k, v in zip(self.genome.input_nodes_dict.keys(), input_values):
             self.values[k] = v
-        for n in self.genome.output_nodes_dict.values():
-            self.evaluate_node(n)
-            #calculate the value of the output_node and save them into self.values list.
-        return [ True if self.values[n.node_name] == 1 else False for n in self.genome.output_nodes_dict.values()]
+        for node in self.genome.output_nodes_dict.values():
+            self.evaluate_node(node)
+            # calculate the value of the output_node and save them into self.values list
+        return [ True if self.values[node.node_name] > 0.5 else False for n in self.genome.output_nodes_dict.values()]
+        # 调试，上述if原本判定为==1
 
     def evaluate_node(self, node):
         """
@@ -93,10 +94,13 @@ class Network:
 class DefaultGenome(object):
     def __init__(self, key):
         self.key = key
-        # initial connection, full/none/random/layer # todo: bug when intialize with random connection
-        self.initial_connection = "full"
-        self.node_add_prob = 0.5
-        self.conn_add_prob = 0.5
+        self.input_layer_size = 486
+        self.hidden_layer_size = 10
+        self.output_layer_size = 3
+        # initial connection: full/none/random/layer # todo: bug when initialize with random connection
+        self.initial_connection = "layer"
+        self.node_add_prob = 0.3
+        self.conn_add_prob = 0.4
         self._set_genome()
     
     def _convert_to_dict(self, data):
@@ -137,26 +141,35 @@ class DefaultGenome(object):
         weight = random.choice([1,-1])
         node2.set_links((node1,weight))
 
-    def _connect_node_full_init(self, prelayer, thislayer, nextlayer):
+    def _connect_node_full_init(self, prelayer, thislayer, nextlayer, mode ='full'):
         """
         类内工具，向前向后层进行全连接
         :param：需要输入字典， 比如self.input_nodes_dict
+        mode = full/pre/next
         """
-        for hidden_node1 in thislayer.values():
-            for input_node_name in prelayer:
-                hidden_node1.set_links((prelayer[input_node_name], random.choice([-1, 1])))
-            for output_node in nextlayer.values():
-                output_node.set_links((hidden_node1, random.choice([-1, 1])))
-
+        if mode == 'full':
+            for hidden_node1 in thislayer.values():
+                for input_node_name in prelayer:
+                    hidden_node1.set_links((prelayer[input_node_name], random.choice([-1, 1])))
+                for output_node in nextlayer.values():
+                    output_node.set_links((hidden_node1, random.choice([-1, 1])))
+        elif mode == 'pre':
+            for hidden_node1 in thislayer.values():
+                for input_node_name in prelayer:
+                    hidden_node1.set_links((prelayer[input_node_name], random.choice([-1, 1])))
+        elif mode == 'next':
+            for hidden_node1 in thislayer.values():
+                for output_node in nextlayer.values():
+                    output_node.set_links((hidden_node1, random.choice([-1, 1])))
+        else:
+            print('undefined mode in function _connect_node_full_init')
+            return
     def _set_genome(self):
         # hidden layer doesn't have further layers anymore
         # all information stored in nodes
 
         #self.nodes = collections.OrderedDict()
         #self.connection = {}    # not maintained
-        self.input_layer_size = 486
-        self.hidden_layer_size = 50
-        self.output_layer_size = 3
 
         self.input_nodes_list = [DefaultNode(f"in_{n}", node_type="input")
                                  for n in range(self.input_layer_size)]
@@ -201,11 +214,9 @@ class DefaultGenome(object):
                 else:
                     layer_dict2[hidden_node] = self.hidden_nodes_dict[hidden_node]
             self._connect_node_full_init(self.input_nodes_dict, layer_dict1, layer_dict2)
-            self._connect_node_full_init(layer_dict1, layer_dict2, self.output_nodes_dict)
-            # todo layer dict12 之间连接了两遍
+            self._connect_node_full_init(layer_dict1, layer_dict2, self.output_nodes_dict, mode='next')
         elif self.initial_connection == "None":
             print("Error! undefined keyword was given in initializing")
-
 
     def mutate_add_node(self, mode='break'):
         # node mutation (a, b, w) -> (a, c, 1), (c, b, w)
@@ -238,6 +249,7 @@ class DefaultGenome(object):
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
             self._connect_node_pair(node_a, node_b, 'sort')
+            print('hh connection added')
         elif mode == 'ih':  # input --> hidden
             node_a = random.choice(list(self.input_nodes_dict.values()))
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
