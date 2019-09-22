@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="6f4045e7-a6ac-45d4-9559-9549e79c0f89" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gadakeco_Code/res/config.json" beforeDir="false" afterPath="$PROJECT_DIR$/Gadakeco_Code/res/config.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gadakeco_Code/src/neat/network.py" beforeDir="false" afterPath="$PROJECT_DIR$/Gadakeco_Code/src/neat/network.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />

@@ -244,8 +244,8 @@ class DefaultGenome(object):
     def mutate_add_connection(self, mode='auto'):
         # TODO: connection mutation, use Uniform distribution or Gauss distribution
         if mode == 'auto':   # random choose from the following modes
-            mode = random.choice(['hh', 'ih', 'ho'])    #todo adaptive probability
-        if mode == 'hh':    # hidden --> hidden
+            mode = random.choice(['hh', 'ih', 'ho','weight'])    #todo adaptive probability
+        elif mode == 'hh':    # hidden --> hidden
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
             self._connect_node_pair(node_a, node_b, 'sort')
@@ -258,6 +258,12 @@ class DefaultGenome(object):
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.output_nodes_dict.values()))
             node_b.set_links((node_a,random.choice([-1, 1])))
+        elif mode =='weight':
+            weight_change_node = random.choice(list(self.hidden_nodes_dict.values()))
+            weight_change_node.set_links((weight_change_node,1) ,mode='weight')
+        else:
+            print('undefined mode')
+            return
 
     def mutate_delete_node(self):
 
@@ -308,14 +314,22 @@ class DefaultNode(object):
         self.bias = bias
         self.response = response
         self.node_type = node_type  # 标记输出、输出、隐藏层
-    
-    def set_links(self, newlink):
-        if type(newlink) == list:   # [(inputnode, weight),(),()]
-            self.links.extend(newlink)
-        elif type(newlink) == tuple:    # (inputnode, weight)
-            self.links.append(newlink)
+
+    def set_links(self, newlink, mode = 'add'):
+        if mode == 'add':
+            if type(newlink) == list:   # [(inputnode, weight),(),()]
+                self.links.extend(newlink)
+            elif type(newlink) == tuple:    # (inputnode, weight)
+                self.links.append(newlink)
+            else:
+                print("error! input should be [(inputnode, weight),(),()] or (inputnode, weight)")
+        elif mode == 'weight':  # 该点的每个input connection的权重突变
+            temp_links = []
+            for inputnode, weight in self.links:
+                temp_links.append((inputnode,random.choice([-1,1])))
+            self.links = temp_links
         else:
-            print("error! input should be [(inputnode, weight),(),()] or (inputnode, weight)")
+            print('undefined mode')
 
     def get_node_id(self):
         type, id =self.node_name.split("_")
