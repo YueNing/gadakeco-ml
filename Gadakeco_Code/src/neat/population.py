@@ -73,8 +73,9 @@ class Population():
         # import pdb; pdb.set_trace()
         for n in mutated_connection_network:
             n.genome.mutate_add_connection()
+            print(n.genome,'connection added')
         for n in mutated_node_network:
             n.genome.mutate_add_node()
-        
+            print('node added')
         self.current_generation = survive_network + mutated_connection_network + mutated_node_network
         

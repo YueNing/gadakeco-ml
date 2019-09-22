@@ -17,8 +17,8 @@ class Network:
             used to print the class Network information
         """
         network =self.genome.input_nodes_list + self.genome.hidden_nodes_list + self.genome.output_nodes_list
-
-        return f"{network}"
+        #todo 失败的可视化
+        return f"这写的啥！{network}"
 
     #def _mutate_add_connection(self):  
     #    self.genome.mutate_add_connection()
@@ -98,10 +98,13 @@ class DefaultGenome(object):
         self.hidden_layer_size = 10
         self.output_layer_size = 3
         # initial connection: full/none/random/layer # todo: bug when initialize with random connection
-        self.initial_connection = "layer"
-        self.node_add_prob = 0.3
-        self.conn_add_prob = 0.4
+        self.initial_connection = "None"
+        self.node_add_prob = 0.2
+        self.conn_add_prob = 0.2
         self._set_genome()
+
+    def __str__(self):
+        return f'DefaultGenome Class: hidden_layer_size={len(self.hidden_nodes_dict)}'
     
     def _convert_to_dict(self, data):
         """
@@ -244,7 +247,9 @@ class DefaultGenome(object):
     def mutate_add_connection(self, mode='auto'):
         # TODO: connection mutation, use Uniform distribution or Gauss distribution
         if mode == 'auto':   # random choose from the following modes
-            mode = random.choice(['hh', 'ih', 'ho','weight'])    #todo adaptive probability
+            mode = random.choice(['hh', 'ih', 'ho','weight'])
+            print('auto mode has choose the mode of', mode)
+            #todo adaptive probability
         elif mode == 'hh':    # hidden --> hidden
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
@@ -258,9 +263,12 @@ class DefaultGenome(object):
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.output_nodes_dict.values()))
             node_b.set_links((node_a,random.choice([-1, 1])))
+            print(node_a)
         elif mode =='weight':
             weight_change_node = random.choice(list(self.hidden_nodes_dict.values()))
             weight_change_node.set_links((weight_change_node,1) ,mode='weight')
+            #tiaoshi
+            print('weight changed')
         else:
             print('undefined mode')
             return
