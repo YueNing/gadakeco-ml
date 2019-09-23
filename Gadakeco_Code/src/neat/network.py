@@ -12,13 +12,13 @@ class Network:
         self.values = {}    # save all the values in nodes
         #self._mutate_add_connection() should not be used. mutate_* function only will be called in population.py
 
-    def __str__(self):
-        """
-            used to print the class Network information
-        """
-        network =self.genome.input_nodes_list + self.genome.hidden_nodes_list + self.genome.output_nodes_list
-        #todo 失败的可视化
-        return f"这写的啥！{network}"
+    # def __str__(self):
+    #     """
+    #         used to print the class Network information
+    #     """
+    #     network =self.genome.input_nodes_list + self.genome.hidden_nodes_list + self.genome.output_nodes_list
+    #     #todo 失败的可视化
+    #     return f"这写的啥！{network}"
 
     #def _mutate_add_connection(self):  
     #    self.genome.mutate_add_connection()
@@ -56,6 +56,7 @@ class Network:
         for node in self.genome.output_nodes_dict.values():
             self.evaluate_node(node)
             # calculate the value of the output_node and save them into self.values list
+        # import pdb; pdb.set_trace()
         return [ True if self.values[node.node_name] == 1 else False for n in self.genome.output_nodes_dict.values()]
 
     def evaluate_node(self, node):
@@ -65,7 +66,7 @@ class Network:
         """
         if node.node_type=="input":  # ps type数据仅在初始化时有维护
             return
-        if node.links is None:
+        if not node.links:
             self.values[node.node_name] = 0 # values是在evaluate时保存输入的图像的字典 key=node_name
             return self.values[node.node_name]
 
@@ -94,7 +95,7 @@ class DefaultGenome(object):
     def __init__(self, key):
         self.key = key
         self.input_layer_size = 486
-        self.hidden_layer_size = 10
+        self.hidden_layer_size = 1
         self.output_layer_size = 3
         # initial connection: full/none/random/layer # todo: bug when initialize with random connection
         self.initial_connection = "None"
@@ -228,35 +229,40 @@ class DefaultGenome(object):
         # register the added node in dict
         self.hidden_layer_size += 1
         added_node = DefaultNode(f"h_{self.hidden_layer_size}", node_type="hidden")
-        self.hidden_nodes_dict['added_node.node_name'] = added_node
-
+        self.hidden_nodes_dict[added_node.node_name] = added_node
+        
         if mode == 'break':   # 破坏一个connection，中间加塞新的node
             # input of chosen node --> added node --> chosen node （random weight
             selected_nodes = []
             for n in self.hidden_nodes_dict.values():
+                print(f'{n.node_name} links are {n.links}!')
                 if not n.links:
                     pass
                 else:
                     selected_nodes.append(n)
-            chosen_node = random.choice(selected_nodes)
-            chosen_inputnode, chosen_weight = random.choice(chosen_node.links)
+            if not selected_nodes:
+                pass
+            else:
+                chosen_node = random.choice(selected_nodes)
+                chosen_inputnode, chosen_weight = random.choice(chosen_node.links)
 
-            added_node.set_links((chosen_inputnode,random.choice([-1,1])))
-            chosen_node.set_links((added_node,random.choice([-1,1])))
+                added_node.set_links((chosen_inputnode,random.choice([-1,1])))
+                chosen_node.set_links((added_node,random.choice([-1,1])))
+                print('node added successfull!')
         else:
             pass
 
     def mutate_add_connection(self, mode='auto'):
         # TODO: connection mutation, use Uniform distribution or Gauss distribution
-        if mode == 'auto':   # random choose from the following modes
+        if mode == "auto":
             mode = random.choice(['hh', 'ih', 'ho','weight'])
-            print('auto mode has choose the mode of', mode)
-            #todo adaptive probability
-        elif mode == 'hh':    # hidden --> hidden
+            print("auto mode are selected")
+        #todo adaptive probability
+        if mode == 'hh':    # hidden --> hidden
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
             self._connect_node_pair(node_a, node_b, 'sort')
-            print('hh connection added')
+            # print(f'{node_a} and {node_b}:{node_a.node_name} --> {node_b.node_name} hh connection added {node_a.links} and {node_b.links}')
         elif mode == 'ih':  # input --> hidden
             node_a = random.choice(list(self.input_nodes_dict.values()))
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
@@ -274,6 +280,8 @@ class DefaultGenome(object):
         else:
             print('undefined mode')
             return
+        print('connection added')        
+        # import pdb; pdb.set_trace()
 
     def mutate_delete_node(self):
 

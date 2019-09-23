@@ -1,8 +1,9 @@
-from network import Network     #这为啥报错啊？没毛病啊
+from .network import Network     #这为啥报错啊？没毛病啊
 import time
 import dill as pickle
 import gzip
 import copy
+import random
 
 class Population():
     def __init__(self, seed, size, initial_state=None):
@@ -47,7 +48,6 @@ class Population():
         with gzip.open(filename, 'w', compresslevel=5) as f:
             #data = (self.current_generation, config, population, species_set, random.getstate())   #todo 这啥呀，里面的参数都没定义
             data = (self.seed, self.generation_count, self.current_generation)
-            print(data[2][0].genome.output_nodes_list[0]) # where will it be printed?
             pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     def create_next_generation(self):
@@ -70,12 +70,10 @@ class Population():
         # https://www.python-course.eu/python3_deep_copy.php (deepcopy)
         mutated_connection_network = used_network[:int(0.8*len(used_network))]
         mutated_node_network = used_network[-int(0.2*len(used_network)):]
-        # import pdb; pdb.set_trace()
         for n in mutated_connection_network:
             n.genome.mutate_add_connection()
-            print(n.genome,'connection added')
         for n in mutated_node_network:
             n.genome.mutate_add_node()
-            print('node added')
-        self.current_generation = survive_network + mutated_connection_network + mutated_node_network
+        self.current_generation = mutated_connection_network + mutated_node_network + survive_network
+        random.shuffle(self.current_generation)
         
