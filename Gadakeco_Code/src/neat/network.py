@@ -68,27 +68,20 @@ class Network:
             return
         if not node.links:
             self.values[node.node_name] = 0 # values是在evaluate时保存输入的图像的字典 key=node_name
-            return self.values[node.node_name]
-
-        number_of_links = len(node.links)  # 数据结构：每个node的输入links = [(inputnode, weight),(),()]
-        links_with_known_value = 0
+            return
 
         for link in node.links:
             # import pdb; pdb.set_trace()
             if link[0].node_name not in self.values:    # link：[节点，权重]
                 self.evaluate_node(link[0]) # 调用函数本身 #todo debug 循环调用出错
-                links_with_known_value += 1
-            else:
-                links_with_known_value += 1
 
-            if links_with_known_value == number_of_links:
-                node_inputs = []
-                for i, w in node.links:  #todo bug? links 数据结构[()()()]
-                    node_inputs.append(self.values[i.node_name] * w)
-                suminput = node.agg_func(node_inputs)
-                self.values[node.node_name] = node.act_func(node.bias + node.response * suminput)
-                #计算出node的value保存在values字典中
-                return self.values[node.node_name]
+        node_inputs = []
+        for i, w in node.links:  #todo bug? links 数据结构[()()()]
+            node_inputs.append(self.values[i.node_name] * w)
+            suminput = node.agg_func(node_inputs)
+            self.values[node.node_name] = node.act_func(node.bias + node.response * suminput)
+            #计算出node的value保存在values字典中
+
 
 
 class DefaultGenome(object):
