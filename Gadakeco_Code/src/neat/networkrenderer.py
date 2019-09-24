@@ -21,7 +21,7 @@ def render_network(surface, network, values):
     """
     colors = {1: (255, 255, 255), -1: (255, 0, 0)}
     # draw slightly gray background for the minimap
-    pygame.draw.rect(surface, (128, 128, 128, 128), (0, 0, 100 * TILESIZE, 18 * TILESIZE))#27 *TILESIZE
+    pygame.draw.rect(surface, (128, 128, 128, 128), (0, 0, 27 * TILESIZE, 18 * TILESIZE))#27 *TILESIZE
     #draw a rectangle with the color (128, 128, 128, 128), postion(0, 0) and size(27 * TILESIZE, 18 * TILESIZE)
     # draw minimap
     for y in range(18):
@@ -31,42 +31,58 @@ def render_network(surface, network, values):
                 surface.fill(color, (TILESIZE * x, TILESIZE * y, TILESIZE, TILESIZE))
                 pygame.draw.rect(surface, (0, 0, 0), (TILESIZE * x, TILESIZE * y, TILESIZE, TILESIZE), 1)
                 #the last parameter 1 means width=1 and used for line thickness
-
     # Zeichnen Sie hier das Netzwerk auf das Surface.
-    
-
-    # TODO node_dict 只存在hidden_nodes 的位置，input_nodes 和output_nodes 的位置在画线的时候也是需要的？ 
+ 
     node_dict={}
     #save in form of {"node_name":(x.node, y.node)}
-    possible_position=[(x,y) for x in range(28,60) for y in range(0,18)]
-    #save all left position in Surface
-
-    for node in network.genome.nodes["hidden_nodes"]:
-        if node.node_name in node_dict:
+    possible_position=[(x*TILESIZE,y*TILESIZE) for x in range(28,60) for y in range(0,18)]
+    #choose the position of hidden_nodes randomly and save the rest possible positions
+    for node in network.genome.hidden_nodes_dict:
+        if node in node_dict:
             continue
         else:
             position=random.choice(possible_position)
             possible_position.remove(position)
-            node_dict[node.node_name]=position
-    #refresh the node_dict and possible_position
+            node_dict[node]=position
+    #choose the position of output_nodes
+    y_output_node=4
+    for output_node in network.genome.output_nodes_dict:
+        node_dict[output_node]=(65*TILESIZE, y_output_node*TILESIZE)
+        y_output_node+=5
+    #print nodes in screen
     for _ in node_dict:
         x=node_dict[_][0]
         y=node_dict[_][1]
-        surface.fill(colors[1], (TILESIZE * x, TILESIZE * y, TILESIZE, TILESIZE))
-        pygame.draw.rect(surface, (0, 0, 0), (TILESIZE * x, TILESIZE * y, TILESIZE, TILESIZE), 1)
-
-    connection_dict={}
-
-    for key_connection, values_connection in network.genome.connection.items():
-        if values_connection==1:
-            connection_dict[key_connection]=(0, 201, 87)
-        elif values_connection==-1:
-            connection_dict[key_connection]=(255, 0, 0)
-        else:
-            connection_dict[key_connection]=(255,255,0)
+        surface.fill(colors[1], (x, y, TILESIZE, TILESIZE))
+        pygame.draw.rect(surface, (0, 0, 0), (x, y, TILESIZE, TILESIZE), 1)
+    for y in range(18):
+        for x in range(27):
+            node_dict[f"in_{y * 27 + x}"]=[x*TILESIZE,y*TILESIZE]
     
-    for nodes, color_line in connection_dict.items():
-        pygame.draw.line(surface, color_line, node_dict[nodes[0].node_name], node_dict[nodes[1].node_name], 1)
+    connection_dict={}
+    line_colors={1:(0, 201, 87),-1:(255, 0, 0),0:(255,255,0)}
+    #merge two dictionaries into one dictionary
+    hidden_output_nodes = {**network.genome.hidden_nodes_dict, **network.genome.output_nodes_dict}
+    #generate a dict in form of {"node_name":("input_node.node_name", color)}
+    for node in hidden_output_nodes:
+        for link in hidden_output_nodes[node].links:
+            if link[1]==1:
+                connection_dict[node]=[link[0].node_name,line_colors[1]]
+            elif link[1]==-1:
+                connection_dict[node]=[link[0].node_name,line_colors[-1]]
+            else:
+                connection_dict[node]=[link[0].node_name,line_colors[0]]
+    #print connections in screen
+    for node in connection_dict:
+        pygame.draw.line(surface, connection_dict[node][1], node_dict[connection_dict[node][0]], node_dict[node], 1)
+
+        # if node==1:
+        #     connection_dict[key_connection]=(0, 201, 87)
+        # elif values_connection==-1:
+        #     connection_dict[key_connection]=(255, 0, 0)
+        # else:
+        #     connection_dict[key_connection]=(255,255,0)
+    # import pdb; pdb.set_trace()
 
 
         
