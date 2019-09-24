@@ -7,7 +7,7 @@ import random
 import logging
 
 class Population():
-    def __init__(self, seed, size, initial_state=None):
+    def __init__(self, seed, size=100, initial_state=None):
         """
         Erstellt eine neue Population mit der Groesse 'size' und wird zuerst fuer den uebergebenen seed trainiert.
         """
@@ -38,7 +38,7 @@ class Population():
         with gzip.open(filename) as f:
             seed, generation_count, current_generation = pickle.load(f)
 
-        return Population(seed, generation_count, (generation_count, current_generation))
+        return Population(seed, initial_state=(generation_count, current_generation))
 
     def save_to_file(self, filename):
         """
@@ -62,6 +62,7 @@ class Population():
         survive_size = int(0.1 * self.size)
         mutated_size = int(0.9 * self.size)
         survive_network = sorted(self.current_generation, key=lambda x: x.fitness, reverse=True)[:survive_size]
+        # survive_network = survive_network + sorted(self.current_generation, key=lambda x: x.fitness, reverse=False)[:int(survive_size * 0.1)]
         
         # mutation
         used_network = []

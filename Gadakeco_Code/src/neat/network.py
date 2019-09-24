@@ -2,7 +2,7 @@ import numpy as np
 import itertools
 import random
 import collections
-
+import numpy
 
 class Network:
 
@@ -57,7 +57,7 @@ class Network:
             self.evaluate_node(node)
             # calculate the value of the output_node and save them into self.values list
         # import pdb; pdb.set_trace()
-        return [ True if self.values[node.node_name] == 1 else False for n in self.genome.output_nodes_dict.values()]
+        return [ True if self.values[n.node_name] > 0.5 else False for n in self.genome.output_nodes_dict.values()]
 
     def evaluate_node(self, node):
         """
@@ -259,7 +259,13 @@ class DefaultGenome(object):
             # print(f'{node_a} and {node_b}:{node_a.node_name} --> {node_b.node_name} hh connection added {node_a.links} and {node_b.links}')
             print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
         elif mode == 'ih':  # input --> hidden
-            node_a = random.choice(list(self.input_nodes_dict.values()))
+            # Use gaussian distribution here, not just random
+            mean = [10, 8]
+            cov = [[1, 0], [0, 1]]
+            x, y = np.random.multivariate_normal(mean, cov)
+            id = int(x) + int(y)*27
+            print(f'id is {id} x and y is {x} {y}')
+            node_a = self.input_nodes_list[id]
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
             node_b.set_links((node_a,random.choice([-1, 1])))
             print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
