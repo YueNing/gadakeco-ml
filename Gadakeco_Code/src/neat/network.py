@@ -98,7 +98,7 @@ class DefaultGenome(object):
         self.hidden_layer_size = 1
         self.output_layer_size = 3
         # initial connection: full/none/random/layer # todo: bug when initialize with random connection
-        self.initial_connection = "None"
+        self.initial_connection = "random"
         self.node_add_prob = 0.2
         self.conn_add_prob = 0.2
         self._set_genome()
@@ -235,7 +235,7 @@ class DefaultGenome(object):
             # input of chosen node --> added node --> chosen node （random weight
             selected_nodes = []
             for n in self.hidden_nodes_dict.values():
-                print(f'{n.node_name} links are {n.links}!')
+                # print(f'{n.node_name} links are {n.links}!')
                 if not n.links:
                     pass
                 else:
@@ -248,6 +248,7 @@ class DefaultGenome(object):
 
                 added_node.set_links((chosen_inputnode,random.choice([-1,1])))
                 chosen_node.set_links((added_node,random.choice([-1,1])))
+                print(f'added_node: {added_node.node_name}->choosed_node: {chosen_node.node_name}')
                 print('node added successfull!')
         else:
             pass
@@ -256,22 +257,25 @@ class DefaultGenome(object):
         # TODO: connection mutation, use Uniform distribution or Gauss distribution
         if mode == "auto":
             mode = random.choice(['hh', 'ih', 'ho','weight'])
-            print("auto mode are selected")
+            # print("auto mode are selected")
         #todo adaptive probability
         if mode == 'hh':    # hidden --> hidden
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
             self._connect_node_pair(node_a, node_b, 'sort')
             # print(f'{node_a} and {node_b}:{node_a.node_name} --> {node_b.node_name} hh connection added {node_a.links} and {node_b.links}')
+            print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
         elif mode == 'ih':  # input --> hidden
             node_a = random.choice(list(self.input_nodes_dict.values()))
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
             node_b.set_links((node_a,random.choice([-1, 1])))
+            print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
         elif mode == 'ho':  # hidden --> output
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.output_nodes_dict.values()))
             node_b.set_links((node_a,random.choice([-1, 1])))
-            print(node_a)
+            # print(node_a)
+            print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
         elif mode =='weight': # random change the weights of all in-connections of a node
             weight_change_node = random.choice(list(self.hidden_nodes_dict.values()))
             weight_change_node.set_links((weight_change_node,1) ,mode='weight')
@@ -280,7 +284,6 @@ class DefaultGenome(object):
         else:
             print('undefined mode')
             return
-        print('connection added')        
         # import pdb; pdb.set_trace()
 
     def mutate_delete_node(self):

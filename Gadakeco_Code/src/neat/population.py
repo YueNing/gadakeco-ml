@@ -4,6 +4,7 @@ import dill as pickle
 import gzip
 import copy
 import random
+import logging
 
 class Population():
     def __init__(self, seed, size, initial_state=None):
@@ -12,6 +13,7 @@ class Population():
         """
         self.seed = seed
         self.size = size
+        logging.basicConfig(filename='gadakeco.log',level=logging.DEBUG)
 
         timestr = time.strftime("%d-%m-%y_%H-%M-%S")
         # eindeutiger name name des Netzwerks (noch zu implementieren)
@@ -74,6 +76,8 @@ class Population():
             n.genome.mutate_add_connection()
         for n in mutated_node_network:
             n.genome.mutate_add_node()
-        self.current_generation = mutated_connection_network + mutated_node_network + survive_network
+        self.current_generation = survive_network + mutated_connection_network + mutated_node_network
         random.shuffle(self.current_generation)
+        for index, n in enumerate(self.current_generation):
+            logging.info(f"generation_{self.generation_count}, network_{index}: {n}")
         
