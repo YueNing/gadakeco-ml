@@ -46,38 +46,52 @@ class Network:
         """
         if len(self.genome.input_nodes_dict) != len(input_values):
             raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.genome.input_nodes_list), len(input_values)))
-        if sum(input_values) == 0:
-            print("warning, the sum of input = 0")
-            return
         for k, v in zip(self.genome.input_nodes_dict.keys(), input_values):
             self.values[k] = v
+        # for node in self.genome.output_nodes_dict.values():
+        #     self.evaluate_node(node)
         for node in self.genome.output_nodes_dict.values():
+            for h_node in self.genome.hidden_nodes_dict.values():
+                    self.evaluate_node(h_node)
             self.evaluate_node(node)
             # calculate the value of the output_node and save them into self.values list
         # import pdb; pdb.set_trace()
-        return [ True if self.values[n.node_name] > 0.5 else False for n in self.genome.output_nodes_dict.values()]
+        # for v in self.values:
+        #     if v.startswith('h'):
+        #         print(f' {v}\'s value is {self.values[v]}')
+        result = [ True if self.values[n.node_name] == 1 else False for n in self.genome.output_nodes_dict.values()]
+        # print(result)
+        if result is not None:
+            return result
+        else:
+            return [False, False, False]
 
     def evaluate_node(self, node):
         """
         迭代评估每个node的输出，从output向前追溯每层相关的inputnode
         主程序中对每个output调用本函数即可
         """
-        if node.node_type=="input":  # ps type数据仅在初始化时有维护
-            return
+        # if node.node_type=="input":  # ps type数据仅在初始化时有维护
+        #     return
         if not node.links:
             self.values[node.node_name] = 0 # values是在evaluate时保存输入的图像的字典 key=node_name
             return
 
-        for link in node.links:
-            # import pdb; pdb.set_trace()
-            if link[0].node_name not in self.values:    # link：[节点，权重]
-                self.evaluate_node(link[0]) # 调用函数本身 #todo debug 循环调用出错
+        # for link in node.links:
+        #     # import pdb; pdb.set_trace()
+        #     if link[0].node_name not in self.values:    # link：[节点，权重]
+        #         self.evaluate_node(link[0]) # 调用函数本身 #todo debug 循环调用出错
 
         node_inputs = []
         for i, w in node.links:  #todo bug? links 数据结构[()()()]
             node_inputs.append(self.values[i.node_name] * w)
-            suminput = node.agg_func(node_inputs)
-            self.values[node.node_name] = node.act_func(node.bias + node.response * suminput)
+        suminput = node.agg_func(node_inputs)
+        self.values[node.node_name] = node.act_func(node.bias + node.response * suminput)
+        # if node.node_name.startswith('h'):
+        #     for link in node.links:
+        #         if link[0].node_name.startswith('h'):
+        #             print(f'{node.node_name} link is {link[0].node_name}')
+            # print(node.links[0])
             #计算出node的value保存在values字典中
 
 
@@ -86,7 +100,7 @@ class DefaultGenome(object):
     def __init__(self, key):
         self.key = key
         self.input_layer_size = 486
-        self.hidden_layer_size = 4
+        self.hidden_layer_size = 3
         self.output_layer_size = 3
         # initial connection: full/none/random/layer # todo: bug when initialize with random connection
         self.initial_connection = "none"
@@ -224,7 +238,7 @@ class DefaultGenome(object):
         self.hidden_nodes_dict[added_node.node_name] = added_node
 
         if mode == 'simple':
-            print(f'{added_node.node_name} added without connection')
+            # print(f'{added_node.node_name} added without connection')
             return
         elif mode == 'break':  # todo bug:break模式会导致添加node后connection的id不再单向递增
             #以下代码或可丢弃
@@ -254,28 +268,28 @@ class DefaultGenome(object):
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
             self._connect_node_pair(node_a, node_b, 'sort')
             # print(f'{node_a} and {node_b}:{node_a.node_name} --> {node_b.node_name} hh connection added {node_a.links} and {node_b.links}')
-            print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
+            # print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
         elif mode == 'ih':  # input --> hidden
             # Use gaussian distribution here, not just random
-            mean = [10, 8]
+            mean = [10, 10]
             cov = [[1, 0], [0, 1]]
             x, y = np.random.multivariate_normal(mean, cov)
             id = int(x) + int(y)*27
-            print(f'id is {id} x and y is {x} {y}')
+            # print(f'id is {id} x and y is {x} {y}')
             node_a = self.input_nodes_list[id]
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
             node_b.set_links((node_a,random.choice([-1, 1])))
-            print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
+            # print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
         elif mode == 'ho':  # hidden --> output
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.output_nodes_dict.values()))
             node_b.set_links((node_a,random.choice([-1, 1])))
             # print(node_a)
-            print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
+            # print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
         elif mode =='weight': # random change the weights of all in-connections of a node // no new connection added
             weight_change_node = random.choice(list(self.hidden_nodes_dict.values()))
             weight_change_node.set_links((weight_change_node,1) ,mode='weight')
-            print(f'weight of {weight_change_node.node_name} changed')
+            # print(f'weight of {weight_change_node.node_name} changed')
         else:
             print(f'undefined mode = {mode}')
             return
