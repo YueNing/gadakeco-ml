@@ -2,7 +2,13 @@ import numpy as np
 import itertools
 import random
 import collections
-import numpy
+
+import yaml
+import os
+os.chdir(r'C:\Documents\GitHub\gadakeco-neat\Gadakeco_Code\src\neat')   # todo:可能需要相对路径？
+with open('yconfig.yaml') as f:
+    config = yaml.load(f, Loader=yaml.FullLoader)
+    print(config)
 
 class Network:
 
@@ -12,15 +18,6 @@ class Network:
         self.values = {}    # save all the values in nodes
         #self._mutate_add_connection() should not be used. mutate_* function only will be called in population.py
 
-    # def __str__(self):
-    #    # todo 失败的可视化
-    #     """
-    #         used to print the class Network information
-    #     """
-    #     network =self.genome.input_nodes_list + self.genome.hidden_nodes_list + self.genome.output_nodes_list
-    #
-    #     return f"这写的啥！{network}"
-        
     def update_fitness(self, points, time):
         """
         Berechnet und aktualisiert den Fitness-Wert des Netzwerks 
@@ -100,12 +97,12 @@ class DefaultGenome(object):
     def __init__(self, key):
         self.key = key
         self.input_layer_size = 486
-        self.hidden_layer_size = 3
+        self.hidden_layer_size = config['hidden_layer_size']
         self.output_layer_size = 3
-        # initial connection: full/none/random/layer # todo: bug when initialize with random connection
-        self.initial_connection = "none"
-        self.node_add_prob = 0.2
-        self.conn_add_prob = 0.4
+        # initial connection: full/none/random/layer
+        self.initial_connection = config['initial_connection']
+        self.node_add_prob = config['node_add_prob']
+        self.conn_add_prob = config['conn_add_prob']
         self._set_genome()
 
     def __str__(self):
@@ -262,7 +259,8 @@ class DefaultGenome(object):
 
     def mutate_add_connection(self, mode='auto'):
         if mode == "auto":  # adaptive probability: edit the weights below
-            mode = random.choices(population=['ih', 'hh', 'ho', 'weight'], weights=[0.6, 0.1, 0.28, 0.02])[0]
+            weight_config = config['mutate_add_connection_weights']
+            mode = random.choices(population=['ih', 'hh', 'ho', 'weight'], weights=weight_config)[0]
         if mode == 'hh':    # hidden --> hidden
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
