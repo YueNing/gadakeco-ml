@@ -248,10 +248,8 @@ class DefaultGenome(object):
             pass
 
     def mutate_add_connection(self, mode='auto'):
-        # TODO: connection mutation, use Uniform distribution or Gauss distribution
         if mode == "auto":  # adaptive probability: edit the weights below
-            mode = random.choice(population=['hh', 'ih', 'ho','weight'], weights=[0.2, 0.5,0.29,0.01])
-
+            mode = random.choices(population=['hh', 'ih', 'ho', 'weight'], weights=[0.2, 0.5, 0.29, 0.01])[0]
         if mode == 'hh':    # hidden --> hidden
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
@@ -281,7 +279,7 @@ class DefaultGenome(object):
             #tiaoshi
             print('weight changed')
         else:
-            print('undefined mode')
+            print(f'undefined mode = {mode}')
             return
         # import pdb; pdb.set_trace()
 
