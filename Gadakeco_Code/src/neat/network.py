@@ -88,10 +88,10 @@ class DefaultGenome(object):
     def __init__(self, key):
         self.key = key
         self.input_layer_size = 486
-        self.hidden_layer_size = 1
+        self.hidden_layer_size = 10
         self.output_layer_size = 3
         # initial connection: full/none/random/layer # todo: bug when initialize with random connection
-        self.initial_connection = "random"
+        self.initial_connection = "none"
         self.node_add_prob = 0.2
         self.conn_add_prob = 0.2
         self._set_genome()
@@ -125,17 +125,18 @@ class DefaultGenome(object):
                 node1, node2 = node2, node1
             elif node1.get_node_id() == node2.get_node_id():
                 print(f"warning, same id were given in mode '{mode}' while connecting 2 nodes")
-                return
+                return False
             else:
                 pass
         elif mode == 'simple':  # 按给定参数顺序连接
             if node1.get_node_id() == node2.get_node_id():
                 print(f"warning, same id were given in mode '{mode}' while connecting 2 nodes")
-                return
+                return False
             else:
                 pass
         weight = random.choice([1,-1])
         node2.set_links((node1,weight))
+        return True
 
     def _connect_node_full_init(self, prelayer, thislayer, nextlayer, mode ='full'):
         """
@@ -248,10 +249,9 @@ class DefaultGenome(object):
 
     def mutate_add_connection(self, mode='auto'):
         # TODO: connection mutation, use Uniform distribution or Gauss distribution
-        if mode == "auto":
-            mode = random.choice(['hh', 'ih', 'ho','weight'])
-            # print("auto mode are selected")
-        #todo adaptive probability
+        if mode == "auto":  # adaptive probability: edit the weights below
+            mode = random.choice(population=['hh', 'ih', 'ho','weight'], weights=[0.2, 0.5,0.29,0.01])
+
         if mode == 'hh':    # hidden --> hidden
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
