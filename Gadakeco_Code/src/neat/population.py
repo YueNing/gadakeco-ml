@@ -75,6 +75,10 @@ class Population():
         mutated_node_network = used_network[-int(0.2*len(used_network)):]
         for n in mutated_connection_network:
             n.genome.mutate_add_connection()
+            n.genome.mutate_add_connection()
+            n.genome.mutate_add_connection()
+            n.genome.mutate_add_connection()
+            #调试，加快突变
         for n in mutated_node_network:
             n.genome.mutate_add_node()
         self.current_generation = survive_network + mutated_connection_network + mutated_node_network
