@@ -115,7 +115,7 @@ class DefaultGenome(object):
         return dict_data
 
     def _connect_node_pair(self, node1, node2, mode ='sort'):
-        """工具函数，类内部使用
+        """工具函数，类内部使用,保证hidden layer的从小到大连接
         :parameter mode = sort/simple
         """
         if mode == 'sort':  # 只允许从小id指向大id连接
@@ -213,7 +213,7 @@ class DefaultGenome(object):
         elif self.initial_connection == "None":
             print("Error! undefined keyword was given in initializing")
 
-    def mutate_add_node(self, mode='break'):
+    def mutate_add_node(self,mode='simple'):
         """
         node mutation (a, b, w) -> (a, c, 1), (c, b, w)
         create a new node in hidden layer
@@ -222,8 +222,12 @@ class DefaultGenome(object):
         self.hidden_layer_size += 1
         added_node = DefaultNode(f"h_{self.hidden_layer_size}", node_type="hidden")
         self.hidden_nodes_dict[added_node.node_name] = added_node
-        
-        if mode == 'break':   # 破坏一个connection，中间加塞新的node
+
+        if mode == 'simple':
+            print(f'{added_node.node_name} added without connection')
+            return
+        elif mode == 'break':  # todo bug:break模式会导致添加node后connection的id不再单向递增
+            #以下代码或可丢弃
             selected_nodes = []
             for n in self.hidden_nodes_dict.values():
                 # print(f'{n.node_name} links are {n.links}!')
@@ -240,9 +244,7 @@ class DefaultGenome(object):
                 added_node.set_links((chosen_inputnode,random.choice([-1,1])))
                 chosen_node.set_links((added_node,random.choice([-1,1])))
                 print(f'added_node: {added_node.node_name}->choosed_node: {chosen_node.node_name}')
-                print('node added successfull!')
-        else:
-            pass
+
 
     def mutate_add_connection(self, mode='auto'):
         if mode == "auto":  # adaptive probability: edit the weights below
