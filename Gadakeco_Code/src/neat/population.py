@@ -5,6 +5,8 @@ import gzip
 import copy
 import random
 import logging
+import numpy
+from scipy import stats
 
 class Population():
     def __init__(self, seed, size=100, initial_state=None):
@@ -13,6 +15,7 @@ class Population():
         """
         self.seed = seed
         self.size = size
+        self.selector_probability = list(stats.norm.pdf([i for i in range(100)], 0, 1))
         logging.basicConfig(filename='gadakeco.log',level=logging.DEBUG)
 
         timestr = time.strftime("%d-%m-%y_%H-%M-%S")
@@ -61,8 +64,27 @@ class Population():
         # find the 10% beste individuen, and survive to next step
         survive_size = int(0.1 * self.size)
         mutated_size = int(0.9 * self.size)
-        survive_network = sorted(self.current_generation, key=lambda x: x.fitness, reverse=True)[:survive_size]
-        # survive_network = survive_network + sorted(self.current_generation, key=lambda x: x.fitness, reverse=False)[:int(survive_size * 0.1)]
+        # survive_network = sorted(self.current_generation, key=lambda x: x.fitness, reverse=True)[:survive_size]
+        _network = sorted(self.current_generation, key=lambda x: x.fitness, reverse=True)
+        
+        ## base on probability, not just the top 10%
+        survive_network = []
+        selected_num = 0
+        for index, p in enumerate(self.selector_probability):
+            if selected_num < survive_size:
+                t = random.random()
+                if p > t:
+                    pass
+                else:
+                    survive_network.append(_network[index])
+                    selected_num +=1
+            else:
+                break
+        if len(survive_network) == survive_size:
+            pass
+        else:
+            for i in range(survive_size - len(survive_network)):
+                survive_network.append(copy.deepcopy(_network[i]))
         
         # mutation
         used_network = []
