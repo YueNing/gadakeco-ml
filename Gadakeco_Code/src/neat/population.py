@@ -15,7 +15,10 @@ class Population():
         """
         self.seed = seed
         self.size = size
-        self.selector_probability = list(stats.norm.pdf([i for i in range(100)], 0, 1))
+        self.repeat_count  = 0
+        self.best_network = None
+        self.last_best_network = None
+        self.selector_probability = list(stats.norm.pdf([i for i in range(self.size)], 0, 1))
         logging.basicConfig(filename='gadakeco.log',level=logging.DEBUG)
 
         timestr = time.strftime("%d-%m-%y_%H-%M-%S")
@@ -47,7 +50,7 @@ class Population():
         """
         Speichert die komplette Population in die Datei mit dem Pfad filename.
         """
-        print("called save_to_file")
+        print(f"called save_to_file {self.generation_count}")
 
         # Save the data
         with gzip.open(filename, 'w', compresslevel=5) as f:
@@ -67,24 +70,55 @@ class Population():
         # survive_network = sorted(self.current_generation, key=lambda x: x.fitness, reverse=True)[:survive_size]
         _network = sorted(self.current_generation, key=lambda x: x.fitness, reverse=True)
         
-        ## base on probability, not just the top 10%
-        survive_network = []
-        selected_num = 0
-        for index, p in enumerate(self.selector_probability):
-            if selected_num < survive_size:
-                t = random.random()
-                if p > t:
-                    pass
-                else:
-                    survive_network.append(_network[index])
-                    selected_num +=1
-            else:
-                break
-        if len(survive_network) == survive_size:
+        # check the best 10 generation
+        if self.best_network is None:
+            self.best_network = copy.deepcopy(_network[0])
+        
+        if self.last_best_network is None:
             pass
+        elif not _network[0].fitness  > 1.001 *self.last_best_network.fitness:
+            self.repeat_count +=1
+            print(f"repeat no improvement fitness {self.repeat_count} !")
         else:
-            for i in range(survive_size - len(survive_network)):
-                survive_network.append(copy.deepcopy(_network[i]))
+            self.repeat_count = 0
+            print(f'network has improvement !')
+        
+        self.last_best_network = copy.deepcopy(_network[0])
+        
+        # if self.best_network.fitness >=  1.1 * _network[0].fitness:
+        #     self.repeat_count +=1
+        #     print(f"repeat no improvement fitness {self.repeat_count} !")
+        
+        print(f"_network[0].fitness is {_network[0].fitness} and self.best_network.fitness is {self.best_network.fitness}")
+        if _network[0].fitness > self.best_network.fitness:
+            self.best_network = copy.deepcopy(_network[0])
+            # print(f'best fitness now is {self.best_network.fitness}')
+
+        if self.repeat_count == 100:
+            print("Evolution fails, try other evolutionary routes!")
+            self.repeat_count = 0
+            survive_network = [copy.deepcopy(self.best_network) for i in range(survive_size)]
+            self.last_best_network = copy.deepcopy(self.best_network)
+            # print(f'repeat count is {self.repeat_count}  and best fitness is {self.best_network.fitness}!')
+        else:
+            ## base on probability, not just the top 10%
+            survive_network = []
+            selected_num = 0
+            for index, p in enumerate(self.selector_probability):
+                if selected_num < survive_size:
+                    t = random.random()
+                    if p > t:
+                        pass
+                    else:
+                        survive_network.append(_network[index])
+                        selected_num +=1
+                else:
+                    break
+            if len(survive_network) == survive_size:
+                pass
+            else:
+                for i in range(survive_size - len(survive_network)):
+                    survive_network.append(copy.deepcopy(_network[i]))
         
         # mutation
         used_network = []
