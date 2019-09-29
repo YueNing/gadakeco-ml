@@ -38,9 +38,6 @@ def render_network(surface, network, values):
     possible_position=[(x*TILESIZE,y*TILESIZE) for x in range(28,60) for y in range(0,18)]
     #choose the position of hidden_nodes randomly and save the rest possible positions
     for node in network.genome.hidden_nodes_dict:
-        if node in node_dict:
-            continue
-        else:
             position=random.choice(possible_position)
             possible_position.remove(position)
             node_dict[node]=position
@@ -63,18 +60,24 @@ def render_network(surface, network, values):
     line_colors={1:(0, 201, 87),-1:(255, 0, 0),0:(255,255,0)}
     #merge two dictionaries into one dictionary
     hidden_output_nodes = {**network.genome.hidden_nodes_dict, **network.genome.output_nodes_dict}
-    #generate a dict in form of {"node_name":("input_node.node_name", color)}
+    #generate a dict in form of {"node_name":[("input_node.node_name", color),(),()]}
     for node in hidden_output_nodes:
+        connection_dict[node]=[]
         for link in hidden_output_nodes[node].links:
+            # import pdb; pdb.set_trace()
+            if link[0].node_type=="input":
+                pygame.draw.rect(surface, line_colors[1], (node_dict[link[0].node_name][0], node_dict[link[0].node_name][1], TILESIZE, TILESIZE), 1)
             if link[1]==1:
-                connection_dict[node]=[link[0].node_name,line_colors[1]]
+                connection_dict[node].append((link[0].node_name,line_colors[1]))
             elif link[1]==-1:
-                connection_dict[node]=[link[0].node_name,line_colors[-1]]
+                connection_dict[node].append((link[0].node_name,line_colors[-1]))
             else:
-                connection_dict[node]=[link[0].node_name,line_colors[0]]
+                connection_dict[node].append((link[0].node_name,line_colors[0]))
     #print connections in screen
     for node in connection_dict:
-        pygame.draw.line(surface, connection_dict[node][1], node_dict[connection_dict[node][0]], node_dict[node], 1)
+        for i in range(len(connection_dict[node])):
+            pygame.draw.line(surface, connection_dict[node][i][1], (node_dict[connection_dict[node][i][0]][0]+TILESIZE/2, node_dict[connection_dict[node][i][0]][1]+TILESIZE/2),\
+            (node_dict[node][0]+TILESIZE/2, node_dict[node][1]+TILESIZE/2), 1)
 
         # if node==1:
         #     connection_dict[key_connection]=(0, 201, 87)
