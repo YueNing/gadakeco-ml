@@ -317,7 +317,7 @@ class DefaultGenome(object):
     def mutate_add_connection(self, mode='auto'):
         if mode == "auto":  # adaptive probability: edit the weights below
             weight_config = config['mutate_add_connection_weights']
-            mode = random.choices(population=['ih', 'hh', 'ho', 'weight'], weights=weight_config)[0]
+            mode = random.choices(population=['ih', 'hh', 'ho'], weights=weight_config)[0]
         if mode == 'hh':    # hidden --> hidden
             # not successful added connection
             tag = False
@@ -331,31 +331,33 @@ class DefaultGenome(object):
                 # print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
         elif mode == 'ih':  # input --> hidden
             # Use gaussian distribution here, not just random
-            mean = [10, 10]
-            cov = [[27.0/18, 0], [0, 1]]
-            x, y = np.random.multivariate_normal(mean, cov)
-            id = int(x) + int(y)*27
-            # print(f'id is {id} x and y is {x} {y}')
-            node_a = self.input_nodes_list[id]
-            node_b = random.choice(list(self.hidden_nodes_dict.values()))
-            weight = random.choice([-1, 1])
-            node_b.set_links((node_a,weight))
-            self.connections[(node_a.node_name, node_b.node_name)] = weight
+            tag = True
+            while tag:
+                mean = [11, 10]
+                cov = [[27.0/6, 3], [3, 2]]
+                x, y = np.random.multivariate_normal(mean, cov)
+                id = int(x) + int(y)*27
+                # print(f'id is {id} x and y is {x} {y}')
+                node_a = self.input_nodes_list[id]
+                node_b = random.choice(list(self.hidden_nodes_dict.values()))
+                if (node_a.node_name, node_b.node_name) not in self.connections:
+                    weight = random.choice([-1, 1])
+                    node_b.set_links((node_a,weight))
+                    self.connections[(node_a.node_name, node_b.node_name)] = weight
+                    tag = False
             # print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
         elif mode == 'ho':  # hidden --> output
-            node_a = random.choice(list(self.hidden_nodes_dict.values()))
-            node_b = random.choice(list(self.output_nodes_dict.values()))
-            weight = random.choice([-1, 1])
-            node_b.set_links((node_a,weight))
-            self.connections[(node_a.node_name, node_b.node_name)] = weight            
+            tag = True
+            while tag:
+                node_a = random.choice(list(self.hidden_nodes_dict.values()))
+                node_b = random.choice(list(self.output_nodes_dict.values()))
+                weight = random.choice([-1, 1])
+                if (node_a.node_name, node_b.node_name) not in self.connections:
+                    node_b.set_links((node_a,weight))
+                    self.connections[(node_a.node_name, node_b.node_name)] = weight      
+                    tag = False      
             # print(node_a)
             # print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
-        elif mode =='weight': # random change the weights of all in-connections of a node // no new connection added
-            weight_change_node = random.choice(list(self.hidden_nodes_dict.values()))
-            weight_change_node.set_links((weight_change_node,1) ,mode='weight')
-            for link in weight_change_node.links:
-                self.connections[(link[0].node_name, weight_change_node.node_name)] = link[1]
-            # print(f'weight of {weight_change_node.node_name} changed')
         else:
             print(f'undefined mode = {mode}')
             return
