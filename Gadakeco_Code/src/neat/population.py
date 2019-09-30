@@ -126,14 +126,17 @@ class Population():
             used_network += copy.deepcopy(survive_network) 
         for n in range(mutated_size%survive_size):
             used_network.append(survive_network[n]) 
+        
         # https://www.python-course.eu/python3_deep_copy.php (deepcopy)
         mutated_connection_network = used_network[:int(0.8*len(used_network))]
         mutated_node_network = used_network[-int(0.2*len(used_network)):]
+
         for n in mutated_connection_network:
-            n.genome.mutate_add_connection()
+            n.genome.mutate_connection()
             #调试，加快突变,可能需要一次或多次突变/代
         for n in mutated_node_network:
-            n.genome.mutate_add_node()
+            n.genome.mutate_node()
+        
         self.current_generation = survive_network + mutated_connection_network + mutated_node_network
         random.shuffle(self.current_generation)
         for index, n in enumerate(self.current_generation):
