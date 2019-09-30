@@ -5,7 +5,7 @@ import collections
 
 import yaml
 import os
-import numpy
+from functools import partial
 
 with open('neat/yconfig.yaml') as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
@@ -31,7 +31,7 @@ class Network:
         for node_name, node in self.genome.output_nodes_dict.items():
             for link in node.links:
                 link_count+=1
-        self.fitness = points - 50 * time - 10*len(self.genome.hidden_nodes_dict)
+        self.fitness = points - 50 * time
 
     def evaluate(self, input_values):
         """
@@ -53,41 +53,78 @@ class Network:
             raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.genome.input_nodes_list), len(input_values)))
         for k, v in zip(self.genome.input_nodes_dict.keys(), input_values):
             self.values[k] = v
-        # for node in self.genome.output_nodes_dict.values():
-        #     self.evaluate_node(node)
+
+        self.evaluate_hidden_node()
         for node in self.genome.output_nodes_dict.values():
-            for h_node in self.genome.hidden_nodes_dict.values():
-                    self.evaluate_node(h_node)
-            self.evaluate_node(node)
+            self.evaluate_output_node(node)
             # calculate the value of the output_node and save them into self.values list
-        # import pdb; pdb.set_trace()
-        # for v in self.values:
-        #     if v.startswith('h'):
-        #         print(f' {v}\'s value is {self.values[v]}')
-        result = [ True if self.values[n.node_name] == 1 else False for n in self.genome.output_nodes_dict.values()]
-        # print(result)
-        if result is not None:
-            return result
+        result = [ True if self.values[n.node_name] > 0.5 else False for n in self.genome.output_nodes_dict.values()]
+        # values reset 
+        # print(self.values)
+        # import pdb;pdb.set_trace()
+        self.values = {}
+        return result
+
+    def evaluate_output_node(self, node):
+        if not node.links:
+            self.values[node.node_name] =0 
         else:
-            return [False, False, False]
-
-    def evaluate_node(self, node):
-        """
-        迭代评估每个node的输出，从output向前追溯每层相关的inputnode
-        主程序中对每个output调用本函数即可
-        """
-        try:
-            if not node.links:
-                self.values[node.node_name] = 0 # values是在evaluate时保存输入的图像的字典 key=node_name
-                return
-
             node_inputs = []
             for i, w in node.links:  #todo bug? links 数据结构[()()()]
                 node_inputs.append(self.values[i.node_name] * w)
             suminput = node.agg_func(node_inputs)
             self.values[node.node_name] = node.act_func(node.bias + node.response * suminput)
-        except:
-            print(f"when calculate the  {node.node_name} links are {[link[0].node_name for link in node.links]}  occurs error!  please check the code!")
+
+    def evaluate_hidden_node(self):
+        """
+        迭代评估每个node的输出，从output向前追溯每层相关的inputnode
+        主程序中对每个output调用本函数即可
+        """
+        for _ in range(len(self.genome.hidden_nodes_dict)):
+            for node in self.genome.hidden_nodes_dict.values():
+                if node.node_name in self.values:
+                    pass
+                else:
+                    tag = True
+                    for link in node.links:
+                        if link[0].node_name not in self.values:
+                            tag = False
+                    if tag:
+                        node_inputs = []
+                        for i, w in node.links:  #todo bug? links 数据结构[()()()]
+                            node_inputs.append(self.values[i.node_name] * w)
+                        suminput = node.agg_func(node_inputs)
+                        self.values[node.node_name] = node.act_func(node.bias + node.response * suminput)
+            
+            # checked = True
+            # for node in self.hidden_nodes_dict.values():
+            #     if node.node_name not in self.values:
+            #         checked = False
+            # if checked:
+            #     break
+        
+        for node in self.genome.hidden_nodes_dict.values():
+            if node.node_name not in self.values:
+                self.values[node.node_name] = 0
+        
+
+
+        # if node.node_type=="input":  # ps type数据仅在初始化时有维护
+        #     return
+        # if not node.links:
+        #     self.values[node.node_name] = 0 # values是在evaluate时保存输入的图像的字典 key=node_name
+        #     return
+
+        # for link in node.links:
+        #     # import pdb; pdb.set_trace()
+        #     if link[0].node_name not in self.values:    # link：[节点，权重]
+        #         self.evaluate_node, link[0] # 调用函数本身 #todo debug 循环调用出错
+
+        # node_inputs = []
+        # for i, w in node.links:  #todo bug? links 数据结构[()()()]
+        #     node_inputs.append(self.values[i.node_name] * w)
+        # suminput = node.agg_func(node_inputs)
+        # self.values[node.node_name] = node.act_func(node.bias + node.response * suminput)
 
 
 class DefaultGenome(object):
@@ -122,7 +159,7 @@ class DefaultGenome(object):
                 dict_data[k.node_name] = k
         return dict_data
 
-    def _connect_node_pair(self, node1, node2, mode ='sort'):
+    def _connect_node_pair(self, node1, node2, mode ='simple'):
         """工具函数，类内部使用,保证hidden layer的从小到大连接
         :parameter mode = sort/simple
         """
@@ -138,11 +175,17 @@ class DefaultGenome(object):
             if node1.get_node_id() == node2.get_node_id():
                 # print(f"warning, same id were given in mode '{mode}' while connecting 2 nodes")
                 return False
+            elif (node1.node_name, node2.node_name) in self.connections:
+                return False
             else:
-                pass
-        weight = random.choice([1,-1])
-        node2.set_links((node1,weight))
-        return True
+                tag = self.creates_cycle(list(self.connections), (node1.node_name,node2.node_name))
+                if tag:
+                    return False
+                else:
+                    weight = random.choice([1,-1])
+                    node2.set_links((node1,weight))
+                    self.connections[(node1.node_name, node2.node_name)] = weight
+                    return True
 
     def _connect_node_full_init(self, prelayer, thislayer, nextlayer, mode ='full'):
         """
@@ -167,6 +210,7 @@ class DefaultGenome(object):
         else:
             print('undefined mode in function _connect_node_full_init')
             return
+    
     def _set_genome(self):
         # hidden layer doesn't have further layers anymore
         # all information stored in nodes
@@ -185,6 +229,7 @@ class DefaultGenome(object):
         self.input_nodes_dict = self._convert_to_dict(self.input_nodes_list)
         self.hidden_nodes_dict = self._convert_to_dict(self.hidden_nodes_list)
         self.output_nodes_dict = self._convert_to_dict(self.output_nodes_list)
+        self.get_connections()        
 
         if self.initial_connection == "full":
             #full connect input-->hidden, full connect hidden-->output
@@ -221,7 +266,16 @@ class DefaultGenome(object):
         elif self.initial_connection == "None":
             print("Error! undefined keyword was given in initializing")
 
-    def mutate_add_node(self,mode='simple'):
+    def get_connections(self):
+        self.connections = {}
+        for node in {**self.hidden_nodes_dict, **self.output_nodes_dict}.values():
+            for link in node.links:
+                in_node = link[0].node_name
+                out_node = node.node_name
+                self.connections[(in_node, out_node)] = link[1]
+        # print(f'initial connections {self.connections}')
+
+    def mutate_add_node(self,mode='break'):
         """
         node mutation (a, b, w) -> (a, c, 1), (c, b, w)
         create a new node in hidden layer
@@ -249,9 +303,15 @@ class DefaultGenome(object):
                 chosen_node = random.choice(selected_nodes)
                 chosen_inputnode, chosen_weight = random.choice(chosen_node.links)
 
-                added_node.set_links((chosen_inputnode,random.choice([-1,1])))
-                chosen_node.set_links((added_node,random.choice([-1,1])))
+                weight1 = random.choice([-1,1])
+                weight2 = random.choice([-1,1])
+                added_node.set_links((chosen_inputnode,weight1))
+                chosen_node.set_links((added_node,weight2))
+                self.connections[(chosen_inputnode.node_name, added_node.node_name)] = weight1
+                self.connections[(added_node.node_name, chosen_node.node_name)] = weight2
                 # print(f'added_node: {added_node.node_name}->choosed_node: {chosen_node.node_name}')
+        # print(f'mutated add node connections {self.connections}')
+        
 
 
     def mutate_add_connection(self, mode='auto'):
@@ -259,11 +319,16 @@ class DefaultGenome(object):
             weight_config = config['mutate_add_connection_weights']
             mode = random.choices(population=['ih', 'hh', 'ho', 'weight'], weights=weight_config)[0]
         if mode == 'hh':    # hidden --> hidden
-            node_a = random.choice(list(self.hidden_nodes_dict.values()))
-            node_b = random.choice(list(self.hidden_nodes_dict.values()))
-            self._connect_node_pair(node_a, node_b, 'sort')
-            # print(f'{node_a} and {node_b}:{node_a.node_name} --> {node_b.node_name} hh connection added {node_a.links} and {node_b.links}')
-            # print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
+            # not successful added connection
+            tag = False
+            try_count = 0
+            while not tag and try_count<10:
+                node_a = random.choice(list(self.hidden_nodes_dict.values()))
+                node_b = random.choice(list(self.hidden_nodes_dict.values()))
+                tag = self._connect_node_pair(node_a, node_b, 'simple')
+                try_count += 1
+                # print(f'{node_a} and {node_b}:{node_a.node_name} --> {node_b.node_name} hh connection added {node_a.links} and {node_b.links}')
+                # print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
         elif mode == 'ih':  # input --> hidden
             # Use gaussian distribution here, not just random
             mean = [10, 10]
@@ -273,22 +338,53 @@ class DefaultGenome(object):
             # print(f'id is {id} x and y is {x} {y}')
             node_a = self.input_nodes_list[id]
             node_b = random.choice(list(self.hidden_nodes_dict.values()))
-            node_b.set_links((node_a,random.choice([-1, 1])))
+            weight = random.choice([-1, 1])
+            node_b.set_links((node_a,weight))
+            self.connections[(node_a.node_name, node_b.node_name)] = weight
             # print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
         elif mode == 'ho':  # hidden --> output
             node_a = random.choice(list(self.hidden_nodes_dict.values()))
             node_b = random.choice(list(self.output_nodes_dict.values()))
-            node_b.set_links((node_a,random.choice([-1, 1])))
+            weight = random.choice([-1, 1])
+            node_b.set_links((node_a,weight))
+            self.connections[(node_a.node_name, node_b.node_name)] = weight            
             # print(node_a)
             # print(f'connection added {node_a.node_name} -> {node_b.node_name} !')        
         elif mode =='weight': # random change the weights of all in-connections of a node // no new connection added
             weight_change_node = random.choice(list(self.hidden_nodes_dict.values()))
             weight_change_node.set_links((weight_change_node,1) ,mode='weight')
+            for link in weight_change_node.links:
+                self.connections[(link[0].node_name, weight_change_node.node_name)] = link[1]
             # print(f'weight of {weight_change_node.node_name} changed')
         else:
             print(f'undefined mode = {mode}')
             return
         # import pdb; pdb.set_trace()
+        # print(f'mutated add connections {self.connections}')
+    
+    @staticmethod
+    def creates_cycle(connections, test):
+        """
+        Returns true if the addition of the 'test' connection would create a cycle,
+        assuming that no cycle already exists in the graph represented by 'connections'.
+        """
+        i, o = test
+        if i == o:
+            return True
+
+        visited = {o}
+        while True:
+            num_added = 0
+            for a, b in connections:
+                if a in visited and b not in visited:
+                    if b == i:
+                        return True
+
+                    visited.add(b)
+                    num_added += 1
+
+            if num_added == 0:
+                return False
 
     def mutate_delete_node(self):
 
@@ -333,7 +429,7 @@ class DefaultNode(object):
         self.act_func_name = act_func
         self.agg_func_name = agg_func
         if act_func == "sign":
-            self.act_func = numpy.sign
+            self.act_func = np.sign
         if agg_func == 'sum':
             self.agg_func = sum
         self.bias = bias

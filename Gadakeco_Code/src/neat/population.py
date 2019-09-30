@@ -1,6 +1,6 @@
 from .network import Network     #这为啥报错啊？没毛病啊
 import time
-import dill as pickle
+import pickle
 import gzip
 import copy
 import random

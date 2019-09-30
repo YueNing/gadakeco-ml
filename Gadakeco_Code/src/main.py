@@ -6,8 +6,6 @@ from lib.constants import GAME_NAME, screenSize, UPS, MAX_UPDATES
 
 screen = None
 context = None
-import sys
-sys.setrecursionlimit(15000)
 
 def setContext(newContext):
     global context
