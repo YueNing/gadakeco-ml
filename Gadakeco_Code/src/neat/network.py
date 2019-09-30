@@ -31,7 +31,7 @@ class Network:
         for  node in self.genome.output_nodes_dict.values():
             for link in node.links:
                 link_count+=1
-        self.fitness = points - 50 * time - 10*len(self.genome.hidden_nodes_dict) - 10*link_count
+        self.fitness = points - 50 * time - 10*len(self.genome.hidden_nodes_dict) - 2*link_count
         # self.fitness = points - 50 * time
 
     def evaluate(self, input_values):
@@ -311,10 +311,10 @@ class DefaultGenome(object):
             tag = True
             try_count = 0
             while tag and try_count<10:
-                mean = [11.5, 10]
-                cov = [[27.0/3, 0], [0, 6]]
+                mean = [11, 10]
+                cov = [[27.0/2, 0], [0, 9]]
                 x, y = np.random.multivariate_normal(mean, cov)
-                id = (int(x) % 27) + (int(y)%18)*27
+                id = (int(x) + int(y)*27) % (27*18)
                 # print(f'id is {id} x and y is {x} {y}')
                 node_a = self.input_nodes_list[id]
                 node_b = random.choice(list(self.hidden_nodes_dict.values()))

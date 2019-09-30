@@ -1,6 +1,6 @@
 hidden_layer_size: 3
-node_add_prob: 0.5
-conn_add_prob: 0.5
+node_add_prob: 0.8
+conn_add_prob: 0.8
 mutate_add_connection_weights:
   # the sum of the probability shall be 1
   - 0.6 #add a ih connection

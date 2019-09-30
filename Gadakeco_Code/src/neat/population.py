@@ -76,7 +76,7 @@ class Population():
         
         if self.last_best_network is None:
             pass
-        elif not _network[0].fitness  > 1.001 *self.last_best_network.fitness:
+        elif (_network[0].fitness  - self.last_best_network.fitness) < 2:
             self.repeat_count +=1
             print(f"repeat no improvement fitness {self.repeat_count} !")
         else:
