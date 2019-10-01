@@ -11,7 +11,7 @@ import numpy
 hl, = plt.plot([], [])
 
 number_of_processes = min(100, max(multiprocessing.cpu_count() - 2, 1))
-pop_name = "30-09-19_17-01-49_976_100"  # ?这个怎么是静态的orz
+pop_name = "01-10-19_10-43-06_11_100"  # ?这个怎么是静态的orz
 
 
 def evaluate(world):

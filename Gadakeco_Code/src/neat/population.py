@@ -102,24 +102,19 @@ class Population():
             # print(f'repeat count is {self.repeat_count}  and best fitness is {self.best_network.fitness}!')
         else:
             ## base on probability, not just the top 10%
-            survive_network = []
-            selected_num = 0
-            for index, p in enumerate(self.selector_probability):
-                if selected_num < survive_size:
-                    t = random.random()
-                    if p > t:
-                        pass
-                    else:
-                        survive_network.append(_network[index])
-                        selected_num +=1
-                else:
-                    break
-            if len(survive_network) == survive_size:
-                pass
-            else:
-                for i in range(survive_size - len(survive_network)):
-                    survive_network.append(copy.deepcopy(_network[i]))
-        
+            survive_network = [] 
+            while len(survive_network) < survive_size:
+                for index, p in enumerate(self.selector_probability):
+                        t = random.random()
+                        if p > t:
+                            pass
+                        else:
+                            survive_network.append(_network[index])
+                            del _network[index]
+                            del self.selector_probability[len(self.selector_probability)-1]
+                            if len(survive_network)==survive_size:
+                                break
+            self.selector_probability = list(stats.norm.pdf([i for i in range(self.size)], 0, 1))
         # mutation
         used_network = []
         for n in range(int(mutated_size/survive_size)):

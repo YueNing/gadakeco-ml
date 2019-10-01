@@ -5,7 +5,7 @@ mutate_add_connection_weights:
   # the sum of the probability shall be 1
   - 0.6 #add a ih connection
   - 0.1 #add a hh connection
-  - 0.28 #add a ho connection
+  - 0.3 #add a ho connection
   # - 0.02 #random change all the weights of this node
 # initial connection: full/none/random/layer
 initial_connection: random
