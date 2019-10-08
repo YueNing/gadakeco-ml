@@ -86,22 +86,3 @@ def render_network(surface, network, values):
         # else:
         #     connection_dict[key_connection]=(255,255,0)
     # import pdb; pdb.set_trace()
-
-
-        
-
-
-
-
-
-
-
-
-
-   
-
-
-
-
-
-

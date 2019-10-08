@@ -19,6 +19,7 @@ class Network:
         self.values = {}    # save all the values in nodes
         #self._mutate_add_connection() should not be used. mutate_* function only will be called in population.py
 
+
     def update_fitness(self, points, time):
         """
         Berechnet und aktualisiert den Fitness-Wert des Netzwerks 
@@ -409,7 +410,6 @@ class DefaultGenome(object):
                     del node.links[index]
                     break
 
-
 class DefaultNode(object):
     """
 
@@ -457,6 +457,7 @@ class DefaultNode(object):
     def get_node_name(self):
         return self.node_name
     
+
     def __str__(self):
 
         """
