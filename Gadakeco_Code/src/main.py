@@ -7,7 +7,6 @@ from lib.constants import GAME_NAME, screenSize, UPS, MAX_UPDATES
 screen = None
 context = None
 
-
 def setContext(newContext):
     global context
     context = newContext
@@ -27,7 +26,6 @@ def init():
     # create current ContextManager
     from context.mainmenucontext import MainMenuContext
     context = MainMenuContext(setContext)
-
 
 def main():
     init()

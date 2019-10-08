@@ -5,9 +5,13 @@ from multiprocessing import Pool
 from lib import constants
 from neat.population import Population
 from world import NeuronalWorld
+import matplotlib.pyplot as plt
+import numpy
+
+hl, = plt.plot([], [])
 
 number_of_processes = min(100, max(multiprocessing.cpu_count() - 2, 1))
-pop_name = "29-06-2019_13-08-0"
+pop_name = "01-10-19_10-43-06_11_100"  # ?这个怎么是静态的orz
 
 
 def evaluate(world):
@@ -39,10 +43,10 @@ def main():
 
         path = constants.res_loc("networks") + pop.name + ".pop"
         pop.save_to_file(path)
-        print("best fitness:", max(nn.fitness for nn in pop.current_generation))
+        best_fitness =  max(nn.fitness for nn in pop.current_generation)
+        print("best fitness:", best_fitness)
         pop.create_next_generation()
         pop.generation_count += 1
-
 
 if __name__ == '__main__':
     print("starting simulation with {} processes".format(number_of_processes))
